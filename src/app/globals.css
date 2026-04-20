@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 20% 98%;
+  --foreground: 224 71% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 71% 4%;
+  --primary: 245 100% 60%;
+  --primary-foreground: 210 20% 98%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 224 71% 4%;
+  --accent: 245 100% 96%;
+  --accent-foreground: 245 100% 60%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 245 100% 60%;
+}
+
+* {
+  border-color: hsl(var(--border));
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: #F9FBFF;
+  color: hsl(var(--foreground));
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ——— Premium canvas dot grid ——— */
+.canvas-dot-grid {
+  background-image: radial-gradient(#e5e7eb 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* ——— Custom scrollbar ——— */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+/* ——— Global scrollbar ——— */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+/* ——— Premium shadow utility ——— */
+.premium-shadow {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+}
+
+.premium-shadow-hover {
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.1);
+}
+
+/* ——— Glass morphism utility ——— */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
