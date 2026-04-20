@@ -159,6 +159,16 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => router.push(`/submissions/${form.slug}`)}
+                    className="w-full h-12 rounded-xl text-gray-500 border-gray-50 hover:border-indigo-300 hover:text-indigo-600 bg-gray-50/10 mb-4"
+                  >
+                    <Activity size={14} className="mr-2" />
+                    View Submitted Data
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full h-12 rounded-xl text-gray-500 border-gray-50 hover:border-indigo-300 hover:text-indigo-600 bg-gray-50/10"
                     onClick={() => window.open(`/view/${form.slug}`, '_blank')}
                   >

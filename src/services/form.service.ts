@@ -29,4 +29,23 @@ export const formService = {
       method: "POST",
       body: data, // Multer handles FormData
     }).then(res => res.json()),
+
+  getDynamicSubmissionById: (slug: string, recordId: string) =>
+    apiRequest<ApiResponse<{ _id: string; data: Record<string, any> }>>(
+      `/api/${slug}/data/${recordId}`
+    ),
+
+  listDynamicSubmissions: (slug: string, page: number = 1, limit: number = 20) =>
+    apiRequest<ApiResponse<Array<{ _id: string; data: Record<string, any>; createdAt?: string }>>>(
+      `/api/${slug}/data?page=${page}&limit=${limit}`
+    ),
+
+  updateDynamicSubmission: (slug: string, recordId: string, data: FormData) =>
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/${slug}/data/${recordId}`,
+      {
+        method: "PUT",
+        body: data,
+      }
+    ).then((res) => res.json()),
 };

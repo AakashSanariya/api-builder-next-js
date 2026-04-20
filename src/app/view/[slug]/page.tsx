@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { formService } from "../../../services/form.service";
 import { FormModel } from "../../../types/form.types";
 import { FieldSchema } from "../../../types/field.types";
@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function PublicFormView() {
   const { slug } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState<FormModel | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,18 @@ export default function PublicFormView() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const editRecordId = searchParams.get("editId") || searchParams.get("id");
+
+  const buildInitialData = (fields: FieldSchema[]) => {
+    const initialData: Record<string, any> = {};
+    fields.forEach((field: FieldSchema) => {
+      if (field.type === "checkbox") initialData[field.name] = [];
+      else if (field.type === "file") initialData[field.name] = [];
+      else if (field.type === "button" || field.type === "link") return;
+      else initialData[field.name] = "";
+    });
+    return initialData;
+  };
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -27,15 +40,23 @@ export default function PublicFormView() {
         const res = await formService.getFormBySlug(slug as string);
         if (res.success && res.data) {
           setForm(res.data);
-          // Initialize form data
-          const initialData: Record<string, any> = {};
-          res.data.fields.forEach((field: FieldSchema) => {
-            if (field.type === "checkbox") initialData[field.name] = [];
-            else if (field.type === "file") initialData[field.name] = [];
-            else if (field.type === "button" || field.type === "link") return;
-            else initialData[field.name] = "";
-          });
-          setFormData(initialData);
+          const initialData = buildInitialData(res.data.fields);
+
+          if (editRecordId) {
+            const existing = await formService.getDynamicSubmissionById(slug as string, editRecordId);
+            if (existing.success && existing.data?.data) {
+              const mergedData = { ...initialData, ...existing.data.data };
+              // File inputs expect File[] in UI; existing URLs cannot be preloaded as File objects.
+              res.data.fields.forEach((field: FieldSchema) => {
+                if (field.type === "file") mergedData[field.name] = [];
+              });
+              setFormData(mergedData);
+            } else {
+              setFormData(initialData);
+            }
+          } else {
+            setFormData(initialData);
+          }
         } else {
           setErrorMsg("The requested form could not be found.");
         }
@@ -47,7 +68,7 @@ export default function PublicFormView() {
     };
 
     if (slug) fetchForm();
-  }, [slug]);
+  }, [slug, editRecordId]);
 
   const handleFieldChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -82,11 +103,15 @@ export default function PublicFormView() {
         }
       });
 
-      const result = await formService.submitDynamicForm(slug as string, submissionData);
+      const result = editRecordId
+        ? await formService.updateDynamicSubmission(slug as string, editRecordId, submissionData)
+        : await formService.submitDynamicForm(slug as string, submissionData);
 
       if (result.success) {
         setStatus("success");
-        setFormData({});
+        if (!editRecordId && form?.fields) {
+          setFormData(buildInitialData(form.fields));
+        }
       } else if (result.errors) {
         setValidationErrors(result.errors);
         setStatus("error");
@@ -169,8 +194,14 @@ export default function PublicFormView() {
                   <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-50 text-emerald-500 rounded-[2rem] mb-10 shadow-xl shadow-emerald-50">
                     <CheckCircle2 size={48} />
                   </div>
-                  <h2 className="text-3xl font-black text-gray-900 font-display tracking-tight mb-4 leading-none">Transmission Success</h2>
-                  <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mb-12">Your data has been successfully validated and stored.</p>
+                  <h2 className="text-3xl font-black text-gray-900 font-display tracking-tight mb-4 leading-none">
+                    {editRecordId ? "Update Success" : "Transmission Success"}
+                  </h2>
+                  <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mb-12">
+                    {editRecordId
+                      ? "Your prefilled data has been updated and stored."
+                      : "Your data has been successfully validated and stored."}
+                  </p>
                   <Button 
                     variant="primary" 
                     size="lg"

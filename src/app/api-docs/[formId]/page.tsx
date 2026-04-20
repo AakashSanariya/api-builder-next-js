@@ -50,7 +50,9 @@ export default function ApiDocsPage() {
   if (!form) return null;
 
   const baseUrl = "http://localhost:5000";
-  const apiEndpoint = `${baseUrl}/api/${form.slug}`;
+  const createEndpoint = `${baseUrl}/api/${form.slug}`;
+  const listEndpoint = `${baseUrl}/api/${form.slug}/data?page=1&limit=20`;
+  const byIdEndpoint = `${baseUrl}/api/${form.slug}/data/:recordId`;
   
   const sampleRequest = {};
   form.fields.forEach(f => {
@@ -65,6 +67,26 @@ export default function ApiDocsPage() {
     message: `Successfully processed submission for '${form.name}'`,
     data: sampleRequest,
     timestamp: new Date().toISOString()
+  };
+
+  const sampleListResponse = {
+    success: true,
+    data: [
+      {
+        _id: "record_id_1",
+        formSlug: form.slug,
+        formId: form._id,
+        data: sampleRequest,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ],
+    pagination: {
+      page: 1,
+      limit: 20,
+      total: 1,
+      pages: 1,
+    },
   };
 
   return (
@@ -103,20 +125,61 @@ export default function ApiDocsPage() {
                        <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
                           <Globe size={20} />
                        </div>
-                       <h2 className="text-xl font-black text-gray-800 font-display">REST API Target</h2>
+                       <h2 className="text-xl font-black text-gray-800 font-display">Available REST Endpoints</h2>
                     </div>
 
-                    <div className="relative group">
-                        <div className="flex items-center gap-4 bg-gray-950 text-white p-6 rounded-[2rem] font-mono text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
-                            <span className="text-indigo-400 font-black px-3 py-1 bg-indigo-400/10 rounded-lg">POST</span>
-                            <span className="flex-1 truncate tracking-tight text-gray-300">{apiEndpoint}</span>
-                            <button 
-                                onClick={() => copyToClipboard(apiEndpoint)} 
-                                className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
-                            >
-                                {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
-                            </button>
-                        </div>
+                    <div className="space-y-4">
+                      <div className="relative group">
+                          <div className="flex items-center gap-4 bg-gray-950 text-white p-6 rounded-[2rem] font-mono text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
+                              <span className="text-indigo-400 font-black px-3 py-1 bg-indigo-400/10 rounded-lg">POST</span>
+                              <span className="flex-1 truncate tracking-tight text-gray-300">{createEndpoint}</span>
+                              <button
+                                  onClick={() => copyToClipboard(createEndpoint)}
+                                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
+                              >
+                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                              </button>
+                          </div>
+                      </div>
+
+                      <div className="relative group">
+                          <div className="flex items-center gap-4 bg-gray-950 text-white p-6 rounded-[2rem] font-mono text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
+                              <span className="text-emerald-400 font-black px-3 py-1 bg-emerald-400/10 rounded-lg">GET</span>
+                              <span className="flex-1 truncate tracking-tight text-gray-300">{listEndpoint}</span>
+                              <button
+                                  onClick={() => copyToClipboard(listEndpoint)}
+                                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
+                              >
+                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                              </button>
+                          </div>
+                      </div>
+
+                      <div className="relative group">
+                          <div className="flex items-center gap-4 bg-gray-950 text-white p-6 rounded-[2rem] font-mono text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
+                              <span className="text-cyan-400 font-black px-3 py-1 bg-cyan-400/10 rounded-lg">GET</span>
+                              <span className="flex-1 truncate tracking-tight text-gray-300">{byIdEndpoint}</span>
+                              <button
+                                  onClick={() => copyToClipboard(byIdEndpoint)}
+                                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
+                              >
+                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                              </button>
+                          </div>
+                      </div>
+
+                      <div className="relative group">
+                          <div className="flex items-center gap-4 bg-gray-950 text-white p-6 rounded-[2rem] font-mono text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
+                              <span className="text-amber-400 font-black px-3 py-1 bg-amber-400/10 rounded-lg">PUT</span>
+                              <span className="flex-1 truncate tracking-tight text-gray-300">{byIdEndpoint}</span>
+                              <button
+                                  onClick={() => copyToClipboard(byIdEndpoint)}
+                                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
+                              >
+                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                              </button>
+                          </div>
+                      </div>
                     </div>
 
                     {!form.published && (
@@ -178,6 +241,45 @@ export default function ApiDocsPage() {
                             {JSON.stringify(sampleResponse, null, 2)}
                             </pre>
                              <div className="absolute top-4 right-4 p-2 bg-white/50 rounded-lg backdrop-blur-sm border border-white/50 text-[9px] font-black uppercase text-gray-400">200 OK</div>
+                        </div>
+                    </motion.section>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="bg-white rounded-[2.5rem] p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
+                    >
+                        <div className="flex items-center gap-3 mb-8">
+                           <div className="p-3 bg-cyan-50 text-cyan-600 rounded-2xl">
+                              <Code size={20} />
+                           </div>
+                           <h2 className="text-xl font-black text-gray-800 font-display">List Records Response</h2>
+                        </div>
+                        <pre className="bg-gray-50 p-8 rounded-[2rem] border border-gray-50 text-xs text-gray-700 overflow-x-auto font-mono leading-relaxed shadow-inner">
+                        {JSON.stringify(sampleListResponse, null, 2)}
+                        </pre>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="bg-white rounded-[2.5rem] p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
+                    >
+                        <div className="flex items-center gap-3 mb-8">
+                           <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
+                              <Info size={20} />
+                           </div>
+                           <h2 className="text-xl font-black text-gray-800 font-display">Edit Flow</h2>
+                        </div>
+                        <div className="space-y-4 text-sm text-gray-700">
+                          <p><span className="font-black">1.</span> Submit data with <span className="font-mono">POST /api/{form.slug}</span></p>
+                          <p><span className="font-black">2.</span> Fetch records with <span className="font-mono">GET /api/{form.slug}/data</span></p>
+                          <p><span className="font-black">3.</span> Get one record with <span className="font-mono">GET /api/{form.slug}/data/:recordId</span></p>
+                          <p><span className="font-black">4.</span> Update using <span className="font-mono">PUT /api/{form.slug}/data/:recordId</span></p>
                         </div>
                     </motion.section>
                 </div>
