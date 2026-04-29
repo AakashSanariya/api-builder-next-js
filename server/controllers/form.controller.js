@@ -83,10 +83,15 @@ exports.createForm = async (req, res) => {
 // POST /forms/:id (Update Schema)
 exports.updateFormSchema = async (req, res) => {
   try {
-    const { fields, published } = req.body;
+    const { fields, sections, published } = req.body;
+    const updateData = { published: published ?? false };
+    
+    if (sections) updateData.sections = sections;
+    if (fields) updateData.fields = fields;
+
     const form = await Form.findByIdAndUpdate(
       req.params.id,
-      { fields, published: published ?? false },
+      updateData,
       { new: true }
     );
     
@@ -97,16 +102,50 @@ exports.updateFormSchema = async (req, res) => {
   }
 };
 
+const slugify = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")      // Replace spaces with _
+    .replace(/[^\w-]+/g, "")   // Remove all non-word chars
+    .replace(/--+/g, "_");     // Replace multiple - or _ with single _
+};
+
+const groupDataBySection = (sections, validatedData) => {
+  if (!sections || sections.length === 0) return validatedData;
+  
+  const grouped = {};
+  sections.forEach(section => {
+    const sectionData = {};
+    section.fields.forEach(field => {
+      if (validatedData[field.name] !== undefined) {
+        sectionData[field.name] = validatedData[field.name];
+      }
+    });
+    
+    // Create DYNAMIC_USER_ADDED_NAME slug
+    const sectionSlug = section.title ? slugify(section.title) : section.id;
+    const dbKey = `section_${sectionSlug}`;
+    
+    grouped[dbKey] = sectionData;
+  });
+  return grouped;
+};
+
 // POST /api/forms/:slug (Dynamic API Core)
 exports.handleDynamicSubmission = async (req, res) => {
   try {
     const { dynamicForm, validatedData } = req;
     const DynamicData = getDynamicDataModel(dynamicForm.slug);
+    
+    // Grouping data by section before storage if sections exist
+    const structuredData = groupDataBySection(dynamicForm.sections, validatedData);
 
     const savedRecord = await DynamicData.create({
       formSlug: dynamicForm.slug,
       formId: dynamicForm._id,
-      data: validatedData,
+      data: structuredData,
       ip: req.ip,
       userAgent: req.headers["user-agent"],
     });
@@ -180,11 +219,14 @@ exports.updateDynamicSubmission = async (req, res) => {
     const { slug, recordId } = req.params;
     const { dynamicForm, validatedData } = req;
     const DynamicData = getDynamicDataModel(slug);
+    
+    // Grouping data by section before storage if sections exist
+    const structuredData = groupDataBySection(dynamicForm.sections, validatedData);
 
     const updatedRecord = await DynamicData.findOneAndUpdate(
       { _id: recordId, formSlug: dynamicForm.slug, formId: dynamicForm._id },
       {
-        data: validatedData,
+        data: structuredData,
         ip: req.ip,
         userAgent: req.headers["user-agent"],
       },

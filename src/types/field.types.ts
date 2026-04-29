@@ -34,3 +34,9 @@ export interface FieldSchema {
   target?: "_blank" | "_self";
   value?: string;
 }
+
+export interface SectionSchema {
+  id: string;
+  title: string;
+  fields: FieldSchema[];
+}

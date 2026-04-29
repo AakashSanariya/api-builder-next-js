@@ -23,9 +23,10 @@ export default function PublicFormView() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const editRecordId = searchParams.get("editId") || searchParams.get("id");
 
-  const buildInitialData = (fields: FieldSchema[]) => {
+  const buildInitialData = (sections: any[]) => {
     const initialData: Record<string, any> = {};
-    fields.forEach((field: FieldSchema) => {
+    const allFields = sections.flatMap(s => s.fields || []);
+    allFields.forEach((field: FieldSchema) => {
       if (field.type === "checkbox") initialData[field.name] = [];
       else if (field.type === "file") initialData[field.name] = [];
       else if (field.type === "button" || field.type === "link") return;
@@ -34,20 +35,47 @@ export default function PublicFormView() {
     return initialData;
   };
 
+  const flattenSubmissionData = (data: Record<string, any>) => {
+    if (!data) return {};
+    
+    // Check if the data is already flat or nested by section 
+    // If nested, keys will likely be 'section_...' or 'default'
+    // We can check if any value is an object (excluding null, Array, and File)
+    const isNested = Object.values(data).some(v => 
+      v !== null && typeof v === 'object' && !Array.isArray(v) && !(v instanceof File)
+    );
+
+    if (!isNested) return data;
+
+    const flat: Record<string, any> = {};
+    Object.values(data).forEach(sectionValues => {
+      if (typeof sectionValues === 'object' && sectionValues !== null) {
+        Object.assign(flat, sectionValues);
+      }
+    });
+    return flat;
+  };
+
   useEffect(() => {
     const fetchForm = async () => {
       try {
         const res = await formService.getFormBySlug(slug as string);
         if (res.success && res.data) {
-          setForm(res.data);
-          const initialData = buildInitialData(res.data.fields);
+          const formRes = res.data;
+          // Normalize to sections
+          if (!formRes.sections || formRes.sections.length === 0) {
+            formRes.sections = [{ id: 'default', title: '', fields: formRes.fields || [] }];
+          }
+          setForm(formRes);
+          const initialData = buildInitialData(formRes.sections);
 
           if (editRecordId) {
             const existing = await formService.getDynamicSubmissionById(slug as string, editRecordId);
             if (existing.success && existing.data?.data) {
-              const mergedData = { ...initialData, ...existing.data.data };
-              // File inputs expect File[] in UI; existing URLs cannot be preloaded as File objects.
-              res.data.fields.forEach((field: FieldSchema) => {
+              const flatData = flattenSubmissionData(existing.data.data);
+              const mergedData = { ...initialData, ...flatData };
+              const allFields = formRes.sections.flatMap(s => s.fields || []);
+              allFields.forEach((field: FieldSchema) => {
                 if (field.type === "file") mergedData[field.name] = [];
               });
               setFormData(mergedData);
@@ -112,8 +140,8 @@ export default function PublicFormView() {
 
       if (result.success) {
         setStatus("success");
-        if (!editRecordId && form?.fields) {
-          setFormData(buildInitialData(form.fields));
+        if (!editRecordId && form?.sections) {
+          setFormData(buildInitialData(form.sections));
         }
       } else if (result.errors) {
         setValidationErrors(result.errors);
@@ -237,15 +265,29 @@ export default function PublicFormView() {
                     </motion.div>
                   )}
 
-                  <div className="space-y-12">
-                    {form.fields.map((field) => (
-                      <FieldRenderer
-                        key={field.id}
-                        field={field}
-                        value={formData[field.name]}
-                        onChange={(val) => handleFieldChange(field.name, val)}
-                        error={validationErrors[field.name]}
-                      />
+                  <div className="space-y-16">
+                    {form.sections?.map((section) => (
+                      <div key={section.id} className="space-y-8">
+                        {section.title && (
+                          <div className="flex items-center gap-4 px-2">
+                            <h3 className="text-xs font-black text-indigo-600 uppercase tracking-[0.3em] font-display whitespace-nowrap">
+                              {section.title}
+                            </h3>
+                            <div className="h-px w-full bg-gradient-to-r from-indigo-100 to-transparent" />
+                          </div>
+                        )}
+                        <div className="space-y-10">
+                          {section.fields.map((field) => (
+                            <FieldRenderer
+                              key={field.id}
+                              field={field}
+                              value={formData[field.name]}
+                              onChange={(val) => handleFieldChange(field.name, val)}
+                              error={validationErrors[field.name]}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
 

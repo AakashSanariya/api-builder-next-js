@@ -57,12 +57,45 @@ export default function ApiDocsPage() {
   const byIdEndpoint = `${baseUrl}/api/${form.slug}/data/:recordId`;
   const deleteEndpoint = `${baseUrl}/api/${form.slug}/data/:recordId`;
   
-  const sampleRequest: Record<string, string> = {};
-  form.fields.forEach(f => {
-    if (f.type !== 'button') {
-        sampleRequest[f.name] = f.type === 'file' ? 'File binary' : 'Sample value';
+  const slugify = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "_");
+  };
+
+  const buildsSampleRequest = () => {
+    const request: Record<string, any> = {};
+    
+    // Normalize sections
+    const sections = [...(form.sections || [])];
+    if (sections.length === 0 && form.fields && form.fields.length > 0) {
+      sections.push({ id: 'default', title: 'Default', fields: form.fields });
     }
-  });
+
+    sections.forEach(section => {
+      const sectionSlug = section.title ? slugify(section.title) : section.id;
+      const key = `section_${sectionSlug}`;
+      const sectionFields: Record<string, string> = {};
+      
+      section.fields.forEach(f => {
+        if (f.type !== 'button') {
+          sectionFields[f.name] = f.type === 'file' ? 'File binary' : 'Sample value';
+        }
+      });
+      
+      if (Object.keys(sectionFields).length > 0) {
+        request[key] = sectionFields;
+      }
+    });
+    
+    return request;
+  };
+
+  const sampleRequest = buildsSampleRequest();
 
   const sampleResponse = {
     success: true,
@@ -98,16 +131,30 @@ export default function ApiDocsPage() {
   };
 
   // Check if any field is a file type
-  const hasFileFields = form.fields.some(f => f.type === 'file');
+  const hasFileFields = (form.sections || []).length > 0
+    ? form.sections!.some(s => s.fields.some(f => f.type === 'file'))
+    : (form.fields || []).some(f => f.type === 'file');
 
   // Build cURL commands
   const NL = '\n';
   const CONT = ' \\';
 
-  const buildFormFlags = () =>
-    Object.entries(sampleRequest)
+  const flattenSampleForCurl = (obj: Record<string, any>) => {
+    const flat: Record<string, string> = {};
+    Object.values(obj).forEach(section => {
+      if (typeof section === 'object' && section !== null) {
+        Object.assign(flat, section);
+      }
+    });
+    return flat;
+  };
+
+  const buildFormFlags = () => {
+    const flat = flattenSampleForCurl(sampleRequest);
+    return Object.entries(flat)
       .map(([k, v]) => (v === 'File binary' ? `  -F "${k}=@/path/to/file"` : `  -F "${k}=${v}"`))
       .join(CONT + NL);
+  };
 
   const jsonBody = JSON.stringify(sampleRequest, null, 2);
 

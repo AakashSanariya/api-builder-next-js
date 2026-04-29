@@ -12,10 +12,11 @@ const FieldSettingsPanel = () => {
   const setSelectedField = useBuilderStore((state) => state.setSelectedField);
   const updateField = useBuilderStore((state) => state.updateField);
   const deleteField = useBuilderStore((state) => state.deleteField);
-  const fields = useBuilderStore((state) => state.fields);
+  const sections = useBuilderStore((state) => state.sections);
   const { showPopup } = usePopup();
 
-  const isDuplicateName = selectedField ? fields.some(f => f.id !== selectedField.id && f.name === selectedField.name) : false;
+  const allFields = sections.flatMap(s => s.fields);
+  const isDuplicateName = selectedField ? allFields.some(f => f.id !== selectedField.id && f.name === selectedField.name) : false;
   const isEmptyName = selectedField ? !selectedField.name || selectedField.name.trim() === "" : false;
 
   if (!selectedField) {

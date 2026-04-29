@@ -22,6 +22,19 @@ export default function SubmissionListPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { showPopup } = usePopup();
 
+  const flattenData = (data: Record<string, any>) => {
+    if (!data) return {};
+    const isNested = Object.values(data).some(v => 
+      v !== null && typeof v === 'object' && !Array.isArray(v)
+    );
+    if (!isNested) return data;
+    const flat: Record<string, any> = {};
+    Object.values(data).forEach(sVal => {
+       if (typeof sVal === 'object' && sVal !== null) Object.assign(flat, sVal);
+    });
+    return flat;
+  };
+
   const handleDelete = async (recordId: string) => {
     const isConfirmed = await showPopup({
       type: "confirm",
@@ -114,15 +127,18 @@ export default function SubmissionListPage() {
                   <tr key={row._id} className="border-t border-gray-100">
                     <td className="px-4 py-3 font-mono text-xs">{row._id}</td>
                     <td className="px-4 py-3 text-gray-700">
-                      {Object.entries(row.data || {})
-                        .slice(0, 3)
-                        .map(([k, v]) => {
-                          const displayVal = Array.isArray(v) 
-                            ? v.map(item => typeof item === 'object' ? JSON.stringify(item) : String(item)).join(", ")
-                            : (typeof v === 'object' ? JSON.stringify(v) : String(v));
-                          return `${k}: ${displayVal}`;
-                        })
-                        .join(" | ")}
+                      {(() => {
+                        const flat = flattenData(row.data);
+                        return Object.entries(flat)
+                          .slice(0, 3)
+                          .map(([fk, fv]) => {
+                            const displayVal = Array.isArray(fv) 
+                              ? fv.map(item => String(item)).join(", ")
+                              : String(fv);
+                            return `${fk}: ${displayVal}`;
+                          })
+                          .join(" | ");
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       {row.createdAt ? new Date(row.createdAt).toLocaleString() : "-"}

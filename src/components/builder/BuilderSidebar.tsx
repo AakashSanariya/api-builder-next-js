@@ -37,6 +37,7 @@ const FIELD_TEMPLATES: FieldTemplate[] = [
 
 const BuilderSidebar = () => {
   const addField = useBuilderStore((state) => state.addField);
+  const addSection = useBuilderStore((state) => state.addSection);
 
   return (
     <aside className="w-[320px] bg-white border-r h-full flex flex-col shrink-0 z-20 overflow-hidden relative">
@@ -51,8 +52,18 @@ const BuilderSidebar = () => {
             Drag components to your canvas
         </p>
       </div>
+
+      <div className="px-6 pt-6">
+        <button
+          onClick={() => addSection()}
+          className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm hover:shadow-lg hover:shadow-indigo-100"
+        >
+          <Box size={16} />
+          New Module Section
+        </button>
+      </div>
       
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-gray-50/10">
+      <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-4 custom-scrollbar bg-gray-50/10">
         {FIELD_TEMPLATES.map((template, idx) => (
           <motion.button
             key={template.type}

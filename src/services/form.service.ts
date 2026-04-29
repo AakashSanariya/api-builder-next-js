@@ -1,6 +1,6 @@
 import { apiRequest } from "./api";
 import { FormModel, ApiResponse } from "../types/form.types";
-import { FieldSchema } from "../types/field.types";
+import { FieldSchema, SectionSchema } from "../types/field.types";
 
 export const formService = {
   getAllForms: () => 
@@ -18,10 +18,10 @@ export const formService = {
       body: JSON.stringify({ name }),
     }),
 
-  updateSchema: (id: string, fields: FieldSchema[], published: boolean) => 
+  updateSchema: (id: string, sections: SectionSchema[], published: boolean) => 
     apiRequest<ApiResponse<FormModel>>(`/${id}`, {
       method: "POST",
-      body: JSON.stringify({ fields, published }),
+      body: JSON.stringify({ sections, published }),
     }),
 
   submitDynamicForm: (slug: string, data: FormData) => 

@@ -17,11 +17,27 @@ const dynamicValidation = async (req, res, next) => {
       return res.status(403).json({ success: false, message: "This API endpoint is not published yet" });
     }
 
-    // Capture file URLs from multer if present
-    const data = { ...req.body };
+    // Helper to slugify (same as controller)
+    const slugify = (text) => text.toString().toLowerCase().trim().replace(/\s+/g, "_").replace(/[^\w-]+/g, "").replace(/--+/g, "_");
+
+    // Capture initial data and flatten it if it's section-wise
+    const rawData = { ...req.body };
+    const data = { ...rawData };
+
+    // If the data is nested by section, flatten it into the main 'data' object for validation
+    form.sections?.forEach(section => {
+      const sectionKey = `section_${section.title ? slugify(section.title) : section.id}`;
+      if (rawData[sectionKey] && typeof rawData[sectionKey] === 'object') {
+        Object.assign(data, rawData[sectionKey]);
+      }
+    });
+
+    const allFields = form.sections && form.sections.length > 0 
+      ? form.sections.flatMap(s => s.fields || []) 
+      : (form.fields || []);
 
     // Normalize data: handle multiple selections and JSON stringified values
-    form.fields.forEach((field) => {
+    allFields.forEach((field) => {
       const { name, multiple, type } = field;
       let value = data[name];
 
@@ -60,7 +76,7 @@ const dynamicValidation = async (req, res, next) => {
       });
     }
 
-    const { isValid, errors } = validateData(form.fields, data);
+    const { isValid, errors } = validateData(allFields, data);
 
     if (!isValid) {
       return res.status(422).json({

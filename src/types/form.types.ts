@@ -1,10 +1,11 @@
-import { FieldSchema } from "./field.types";
+import { FieldSchema, SectionSchema } from "./field.types";
 
 export interface FormModel {
   _id?: string;
   name: string;
   slug: string;
-  fields: FieldSchema[];
+  fields?: FieldSchema[];
+  sections?: SectionSchema[];
   published: boolean;
   createdAt?: string;
   updatedAt?: string;

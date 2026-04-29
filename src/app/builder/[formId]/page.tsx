@@ -20,11 +20,11 @@ export default function BuilderPage() {
   const { showPopup } = usePopup();
   
   const { 
-    setFields, 
+    setSections, 
     setFormName, 
     setFormSlug,
     setIsPublished, 
-    fields, 
+    sections, 
     formName,
     formSlug, 
     isPublished,
@@ -37,7 +37,12 @@ export default function BuilderPage() {
       try {
         const res = await formService.getFormById(formId as string);
         if (res.success && res.data) {
-          setFields(res.data.fields);
+          // Backward compatibility: if no sections but fields exist, put fields in a default section
+          if (res.data.sections && res.data.sections.length > 0) {
+            setSections(res.data.sections);
+          } else if (res.data.fields && res.data.fields.length > 0) {
+            setSections([{ id: 'section_default', title: 'Default Section', fields: res.data.fields }]);
+          }
           setFormName(res.data.name);
           setFormSlug(res.data.slug);
           setIsPublished(res.data.published);
@@ -56,10 +61,13 @@ export default function BuilderPage() {
   }, [formId]);
 
   const handleSave = async (publish: boolean = false) => {
+    // Flatten all fields from all sections to check for validation
+    const allFields = sections.flatMap(s => s.fields);
+    
     // Check for duplicate API Keys (names)
-    const names = fields.map(f => f.name.trim().toLowerCase());
+    const names = allFields.map(f => f.name.trim().toLowerCase());
     const hasDuplicates = names.some((name, idx) => names.indexOf(name) !== idx && name !== "");
-    const hasEmptyKeys = fields.some(f => !f.name || f.name.trim() === "");
+    const hasEmptyKeys = allFields.some(f => !f.name || f.name.trim() === "");
     
     if (hasDuplicates || hasEmptyKeys) {
       await showPopup({
@@ -74,7 +82,8 @@ export default function BuilderPage() {
 
     setSaving(true);
     try {
-      const res = await formService.updateSchema(formId as string, fields, publish || isPublished);
+      // Send sections instead of fields
+      const res = await formService.updateSchema(formId as string, sections, publish || isPublished);
       if (res.success && res.data) {
         setIsPublished(res.data.published);
         await showPopup({
@@ -105,9 +114,10 @@ export default function BuilderPage() {
     );
   }
 
-  const names = fields.map(f => f.name.trim().toLowerCase());
+  const allFields = sections.flatMap(s => s.fields);
+  const names = allFields.map(f => f.name.trim().toLowerCase());
   const hasDuplicates = names.some((name, idx) => names.indexOf(name) !== idx && name !== "");
-  const hasEmptyKeys = fields.some(f => !f.name || f.name.trim() === "");
+  const hasEmptyKeys = allFields.some(f => !f.name || f.name.trim() === "");
   const isInvalid = hasDuplicates || hasEmptyKeys;
 
   return (
