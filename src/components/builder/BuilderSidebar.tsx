@@ -13,7 +13,8 @@ import {
   MousePointer2, 
   Link as LinkIcon,
   Zap,
-  Box
+  Box,
+  ChevronDown
 } from "lucide-react";
 
 interface FieldTemplate {
@@ -27,6 +28,7 @@ const FIELD_TEMPLATES: FieldTemplate[] = [
   { type: "input", label: "Text Field", icon: Type, description: "Single line user input" },
   { type: "textarea", label: "Large Text", icon: AlignLeft, description: "Multi-line text area" },
   { type: "radio", label: "Single Select", icon: CircleDot, description: "One choice from many" },
+  { type: "select", label: "Dropdown", icon: ChevronDown, description: "Compact choice list" },
   { type: "checkbox", label: "Multi Select", icon: CheckSquare, description: "Multiple choice options" },
   { type: "file", label: "File Upload", icon: Upload, description: "Assets and documents" },
   { type: "button", label: "Action Button", icon: MousePointer2, description: "External trigger" },

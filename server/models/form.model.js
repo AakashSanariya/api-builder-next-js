@@ -4,7 +4,7 @@ const FieldSchema = new mongoose.Schema({
   id: String,
   type: {
     type: String,
-    enum: ["input", "radio", "checkbox", "textarea", "file", "button", "link"],
+    enum: ["input", "radio", "checkbox", "select", "textarea", "file", "button", "link"],
     required: true,
   },
   label: String,
@@ -19,9 +19,13 @@ const FieldSchema = new mongoose.Schema({
     {
       label: String,
       value: mongoose.Schema.Types.Mixed,
+      id: String,
     },
   ],
   multiple: Boolean,
+  url: String,
+  target: String,
+  value: String,
 });
 
 const FormSchema = new mongoose.Schema(

@@ -2,6 +2,7 @@ export type FieldType =
   | "input"
   | "radio"
   | "checkbox"
+  | "select"
   | "textarea"
   | "file"
   | "button"
@@ -17,6 +18,8 @@ export interface FieldValidation {
 export interface FieldOption {
   label: string;
   value: string | number;
+  id?: string;
+  [key: string]: any;
 }
 
 export interface FieldSchema {
@@ -27,4 +30,7 @@ export interface FieldSchema {
   validations?: FieldValidation;
   options?: FieldOption[];
   multiple?: boolean;
+  url?: string;
+  target?: "_blank" | "_self";
+  value?: string;
 }

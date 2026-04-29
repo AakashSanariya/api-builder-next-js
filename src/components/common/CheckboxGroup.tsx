@@ -25,8 +25,8 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   required,
 }) => {
   const toggleOption = (optValue: any) => {
-    const newValue = value.includes(optValue)
-      ? value.filter((v) => v !== optValue)
+    const newValue = value.some(v => String(v) === String(optValue))
+      ? value.filter((v) => String(v) !== String(optValue))
       : [...value, optValue];
     onChange(newValue);
   };
@@ -42,10 +42,11 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
 
       <div className="grid grid-cols-1 gap-3">
         {options.map((option, idx) => {
-          const isChecked = value.includes(option.value);
+          const optionValue = option.id || option.value;
+          const isChecked = value.some(v => String(v) === String(optionValue));
           return (
             <motion.label
-              key={String(option.value)}
+              key={String(optionValue)}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.05 }}
@@ -60,7 +61,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
                 type="checkbox"
                 name={name}
                 checked={isChecked}
-                onChange={() => toggleOption(option.value)}
+                onChange={() => toggleOption(optionValue)}
                 className="hidden"
               />
               

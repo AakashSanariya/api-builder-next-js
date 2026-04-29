@@ -19,6 +19,33 @@ const dynamicValidation = async (req, res, next) => {
 
     // Capture file URLs from multer if present
     const data = { ...req.body };
+
+    // Normalize data: handle multiple selections and JSON stringified values
+    form.fields.forEach((field) => {
+      const { name, multiple, type } = field;
+      let value = data[name];
+
+      // 1. Ensure multiple select fields/checkboxes are always arrays (even if one item)
+      if ((multiple || type === "checkbox") && value !== undefined) {
+        if (!Array.isArray(value)) {
+            data[name] = [value];
+            value = data[name];
+        }
+      }
+
+      // 2. Parse JSON strings back to objects (for rich dropdown data)
+      if (Array.isArray(value)) {
+        data[name] = value.map((v) => {
+          if (typeof v === "string" && (v.startsWith("{") || v.startsWith("["))) {
+            try { return JSON.parse(v); } catch (e) { return v; }
+          }
+          return v;
+        });
+      } else if (typeof value === "string" && (value.startsWith("{") || value.startsWith("["))) {
+        try { data[name] = JSON.parse(value); } catch (e) {}
+      }
+    });
+
     if (req.files) {
       req.files.forEach((file) => {
         const url = `${req.protocol}://${req.get("host")}/uploads/${file.filename}`;

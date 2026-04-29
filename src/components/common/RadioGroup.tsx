@@ -34,10 +34,11 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
 
       <div className="grid grid-cols-1 gap-3">
         {options.map((option, idx) => {
-          const isSelected = value === option.value;
+          const optionValue = option.id || option.value;
+          const isSelected = String(value) === String(optionValue);
           return (
             <motion.label
-              key={String(option.value)}
+              key={String(optionValue)}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.05 }}
@@ -50,9 +51,9 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
               <input
                 type="radio"
                 name={name}
-                value={String(option.value)}
+                value={String(optionValue)}
                 checked={isSelected}
-                onChange={() => onChange(option.value)}
+                onChange={() => onChange(optionValue)}
                 className="hidden"
               />
               

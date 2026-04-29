@@ -56,6 +56,22 @@ export default function BuilderPage() {
   }, [formId]);
 
   const handleSave = async (publish: boolean = false) => {
+    // Check for duplicate API Keys (names)
+    const names = fields.map(f => f.name.trim().toLowerCase());
+    const hasDuplicates = names.some((name, idx) => names.indexOf(name) !== idx && name !== "");
+    const hasEmptyKeys = fields.some(f => !f.name || f.name.trim() === "");
+    
+    if (hasDuplicates || hasEmptyKeys) {
+      await showPopup({
+        title: "Validation Error",
+        message: hasEmptyKeys 
+          ? "One or more fields are missing an API Response Key. All fields must have a valid identifier."
+          : "Duplicate API Response Keys detected. Each field must have a unique key to prevent data collisions.",
+        type: "alert"
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await formService.updateSchema(formId as string, fields, publish || isPublished);
@@ -88,6 +104,11 @@ export default function BuilderPage() {
       </div>
     );
   }
+
+  const names = fields.map(f => f.name.trim().toLowerCase());
+  const hasDuplicates = names.some((name, idx) => names.indexOf(name) !== idx && name !== "");
+  const hasEmptyKeys = fields.some(f => !f.name || f.name.trim() === "");
+  const isInvalid = hasDuplicates || hasEmptyKeys;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F8FAFC]">
@@ -135,7 +156,9 @@ export default function BuilderPage() {
             size="sm" 
             onClick={() => handleSave(false)}
             isLoading={saving}
-            className="border-gray-100 bg-white"
+            disabled={isInvalid}
+            className={`border-gray-100 bg-white ${isInvalid ? 'opacity-50 grayscale' : ''}`}
+            title={isInvalid ? (hasEmptyKeys ? "One or more API Keys are empty" : "Duplicate API Keys detected") : "Sync changes"}
           >
             <Save size={18} className="mr-2 opacity-50" />
             Sync Draft
@@ -145,6 +168,9 @@ export default function BuilderPage() {
             size="sm" 
             onClick={() => handleSave(true)}
             isLoading={saving}
+            disabled={isInvalid}
+            className={isInvalid ? 'opacity-50 grayscale' : ''}
+            title={isInvalid ? (hasEmptyKeys ? "One or more API Keys are empty" : "Duplicate API Keys detected") : isPublished ? "Update Production" : "Deploy API"}
           >
             <Rocket size={18} className="mr-2" />
             {isPublished ? 'Update Production' : 'Deploy API'}

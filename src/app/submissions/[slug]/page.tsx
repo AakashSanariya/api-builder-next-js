@@ -116,7 +116,12 @@ export default function SubmissionListPage() {
                     <td className="px-4 py-3 text-gray-700">
                       {Object.entries(row.data || {})
                         .slice(0, 3)
-                        .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`)
+                        .map(([k, v]) => {
+                          const displayVal = Array.isArray(v) 
+                            ? v.map(item => typeof item === 'object' ? JSON.stringify(item) : String(item)).join(", ")
+                            : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+                          return `${k}: ${displayVal}`;
+                        })
                         .join(" | ")}
                     </td>
                     <td className="px-4 py-3 text-gray-500">

@@ -40,10 +40,10 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       validations: { required: false },
     };
 
-    if (type === "radio" || type === "checkbox") {
+    if (type === "radio" || type === "checkbox" || type === "select") {
       newField.options = [
-        { label: "Option 1", value: "option1" },
-        { label: "Option 2", value: "option2" },
+        { label: "Option 1", value: "option1", id: "opt_1" },
+        { label: "Option 2", value: "option2", id: "opt_2" },
       ];
     }
 

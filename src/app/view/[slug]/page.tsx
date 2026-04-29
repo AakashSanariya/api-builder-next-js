@@ -95,11 +95,14 @@ export default function PublicFormView() {
             if (item instanceof File) {
               submissionData.append(key, item);
             } else {
-              submissionData.append(key, item); // Multer handles repeated keys as array
+              // Stringify if it's an object to prevent [object Object] storage
+              const finalValue = typeof item === "object" ? JSON.stringify(item) : item;
+              submissionData.append(key, finalValue);
             }
           });
         } else {
-          submissionData.append(key, value);
+          const finalValue = typeof value === "object" && value !== null ? JSON.stringify(value) : value;
+          submissionData.append(key, finalValue);
         }
       });
 
@@ -246,14 +249,23 @@ export default function PublicFormView() {
                     ))}
                   </div>
 
-                  <div className="pt-10">
+                  <div className="pt-10 flex flex-col sm:flex-row gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      className="w-full py-6 text-lg rounded-[2rem] border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                      onClick={() => router.back()}
+                    >
+                      Cancel
+                    </Button>
                     <Button
                       type="submit"
                       size="lg"
                       className="w-full py-6 text-lg rounded-[2rem]"
                       isLoading={submitting}
                     >
-                      Confirm Submission
+                      {editRecordId ? "Sync Changes" : "Confirm Submission"}
                       <ArrowRight size={22} className="ml-3" />
                     </Button>
                   </div>
