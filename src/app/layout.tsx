@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AppShell from "./AppShell";
+import { PopupProvider } from "../contexts/PopupContext";
 
 export const metadata: Metadata = {
   title: "Dynamic API Builder",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
-        <AppShell>{children}</AppShell>
+        <PopupProvider>
+          <AppShell>{children}</AppShell>
+        </PopupProvider>
       </body>
     </html>
   );

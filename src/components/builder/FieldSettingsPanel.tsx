@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useBuilderStore } from "../../store/useBuilderStore";
 import InputField from "../common/InputField";
 import { X, Settings2, Sliders, AlertCircle, Trash2, ShieldCheck, ListTree, Code } from "lucide-react";
+import { usePopup } from "../../contexts/PopupContext";
 
 const FieldSettingsPanel = () => {
   const selectedField = useBuilderStore((state) => state.selectedField);
   const setSelectedField = useBuilderStore((state) => state.setSelectedField);
   const updateField = useBuilderStore((state) => state.updateField);
   const deleteField = useBuilderStore((state) => state.deleteField);
+  const { showPopup } = usePopup();
 
   if (!selectedField) {
     return (
@@ -238,8 +240,15 @@ const FieldSettingsPanel = () => {
 
             <div className="pt-10">
               <button
-                onClick={() => {
-                  if (confirm("Permanently destroy this field schema?")) {
+                onClick={async () => {
+                  const confirmed = await showPopup({
+                    type: "confirm",
+                    title: "Destroy Field",
+                    message: "Permanently destroy this field schema?",
+                    confirmText: "Destroy",
+                    cancelText: "Cancel"
+                  });
+                  if (confirmed) {
                     deleteField(selectedField.id);
                   }
                 }}

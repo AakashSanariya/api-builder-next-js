@@ -10,12 +10,14 @@ import BuilderCanvas from "../../../components/builder/BuilderCanvas";
 import FieldSettingsPanel from "../../../components/builder/FieldSettingsPanel";
 import { Loader2, ArrowLeft, Save, Rocket, Layout, Globe } from "lucide-react";
 import Button from "../../../components/common/Button";
+import { usePopup } from "../../../contexts/PopupContext";
 
 export default function BuilderPage() {
   const { formId } = useParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { showPopup } = usePopup();
   
   const { 
     setFields, 
@@ -59,10 +61,16 @@ export default function BuilderPage() {
       const res = await formService.updateSchema(formId as string, fields, publish || isPublished);
       if (res.success && res.data) {
         setIsPublished(res.data.published);
-        alert(publish ? "🚀 Schema Published & Live!" : "💾 Changes stored successfully.");
+        await showPopup({
+          title: "Success",
+          message: publish ? "🚀 Schema Published & Live!" : "💾 Changes stored successfully."
+        });
       }
     } catch (err) {
-      alert("System sync error. Please try again.");
+      await showPopup({
+        title: "Error",
+        message: "System sync error. Please try again."
+      });
     } finally {
       setSaving(false);
     }

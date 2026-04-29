@@ -8,6 +8,7 @@ import { FieldSchema } from "../../types/field.types";
 import FieldRenderer from "../renderer/FieldRenderer";
 import { useBuilderStore } from "../../store/useBuilderStore";
 import { Trash2, GripVertical, Settings2, Code, Layout } from "lucide-react";
+import { usePopup } from "../../contexts/PopupContext";
 
 interface FieldCardProps {
   field: FieldSchema;
@@ -17,6 +18,7 @@ const FieldCard: React.FC<FieldCardProps> = ({ field }) => {
   const selectedField = useBuilderStore((state) => state.selectedField);
   const setSelectedField = useBuilderStore((state) => state.setSelectedField);
   const deleteField = useBuilderStore((state) => state.deleteField);
+  const { showPopup } = usePopup();
 
   const {
     attributes,
@@ -97,9 +99,16 @@ const FieldCard: React.FC<FieldCardProps> = ({ field }) => {
                     <Settings2 size={18} />
                 </button>
                 <button
-                    onClick={(e) => {
-                    e.stopPropagation();
-                    if(confirm("Confirm deletion?")) deleteField(field.id);
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const confirmed = await showPopup({
+                        type: "confirm",
+                        title: "Confirm Deletion",
+                        message: "Are you sure you want to delete this field?",
+                        confirmText: "Delete",
+                        cancelText: "Cancel"
+                      });
+                      if(confirmed) deleteField(field.id);
                     }}
                     className="p-2.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                     title="Delete field"

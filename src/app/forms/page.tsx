@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { formService } from "../../services/form.service";
 import { FormModel } from "../../types/form.types";
+import { usePopup } from "../../contexts/PopupContext";
 import { Plus, Edit2, ExternalLink, Activity, Layout, Search, Layers, Box, Terminal, Globe } from "lucide-react";
 
 import Button from "../../components/common/Button";
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
+  const { showPopup } = usePopup();
 
   const fetchForms = async () => {
     try {
@@ -31,7 +33,14 @@ export default function Dashboard() {
   }, []);
 
   const handleCreateForm = async () => {
-    const name = prompt("Enter a memorable name for your API Schema:");
+    const name = await showPopup({ 
+      type: "prompt", 
+      title: "New API Schema", 
+      message: "Enter a memorable name for your API Schema:", 
+      confirmText: "Create", 
+      cancelText: "Cancel" 
+    });
+    
     if (!name) return;
 
     setIsCreating(true);
@@ -42,7 +51,11 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.log(err);
-      alert("Registration failed. This name might already be reserved.");
+      await showPopup({
+        type: "alert",
+        title: "Registration Failed",
+        message: "This name might already be reserved."
+      });
     } finally {
       setIsCreating(false);
     }

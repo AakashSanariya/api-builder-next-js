@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formService } from "../../../services/form.service";
 import Button from "../../../components/common/Button";
+import { usePopup } from "../../../contexts/PopupContext";
 import { ArrowLeft, Edit2, Trash2, Loader2 } from "lucide-react";
 
 type SubmissionRow = {
@@ -19,9 +20,18 @@ export default function SubmissionListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { showPopup } = usePopup();
 
   const handleDelete = async (recordId: string) => {
-    if (!confirm("Are you sure you want to delete this record? This action cannot be undone.")) return;
+    const isConfirmed = await showPopup({
+      type: "confirm",
+      title: "Confirm Deletion",
+      message: "Are you sure you want to delete this record? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel"
+    });
+
+    if (!isConfirmed) return;
 
     setDeletingId(recordId);
     try {
@@ -29,10 +39,10 @@ export default function SubmissionListPage() {
       if (res.success) {
         setRows((prev) => prev.filter((row) => row._id !== recordId));
       } else {
-        alert(res.message || "Failed to delete record.");
+        await showPopup({ title: "Error", message: res.message || "Failed to delete record." });
       }
     } catch (err: any) {
-      alert(err.message || "An error occurred while deleting.");
+      await showPopup({ title: "Error", message: err.message || "An error occurred while deleting." });
     } finally {
       setDeletingId(null);
     }
