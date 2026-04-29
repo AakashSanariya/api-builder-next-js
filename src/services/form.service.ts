@@ -57,4 +57,9 @@ export const formService = {
         headers: { "Content-Type": "application/json" },
       }
     ).then((res) => res.json()),
+
+  deleteForm: (id: string) =>
+    apiRequest<ApiResponse<any>>(`/${id}`, {
+      method: "DELETE",
+    }),
 };

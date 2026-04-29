@@ -16,5 +16,6 @@ router.get("/", formController.getAllForms);
 router.post("/", formController.createForm);
 router.get("/:id", formController.getFormById);
 router.post("/:id", formController.updateFormSchema);
+router.delete("/:id", formController.deleteForm);
 
 module.exports = router;

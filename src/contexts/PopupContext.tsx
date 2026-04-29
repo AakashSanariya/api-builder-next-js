@@ -14,6 +14,7 @@ interface PopupOptions {
   confirmText?: string;
   cancelText?: string;
   defaultValue?: string;
+  validationValue?: string;
 }
 
 interface PopupContextType {
@@ -84,18 +85,29 @@ export const PopupProvider = ({ children }: { children: ReactNode }) => {
                     <h3 className="text-xl font-black text-gray-900 tracking-tight mb-2">{options.title}</h3>
                     <p className="text-sm text-gray-500 font-medium leading-relaxed">{options.message}</p>
                     
-                    {options.type === "prompt" && (
-                      <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        className="w-full mt-4 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleConfirm();
-                          if (e.key === 'Escape') handleCancel();
-                        }}
-                      />
+                    {(options.type === "prompt" || options.validationValue) && (
+                      <div className="mt-6">
+                        {options.validationValue && (
+                          <p className="text-[10px] font-black uppercase tracking-widest text-red-600 mb-2">
+                            Type "{options.validationValue}" to confirm
+                          </p>
+                        )}
+                        <input
+                          type="text"
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          placeholder={options.validationValue ? `Enter "${options.validationValue}"` : ""}
+                          className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:ring-2 outline-none transition-all
+                            ${options.validationValue 
+                                ? 'border-red-100 focus:ring-red-500/10 focus:border-red-500 font-bold' 
+                                : 'border-gray-200 focus:ring-indigo-500/20 focus:border-indigo-500'}`}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && (!options.validationValue || inputValue === options.validationValue)) handleConfirm();
+                            if (e.key === 'Escape') handleCancel();
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -106,7 +118,13 @@ export const PopupProvider = ({ children }: { children: ReactNode }) => {
                     {options.cancelText}
                   </Button>
                 )}
-                <Button variant="primary" size="sm" onClick={handleConfirm} className={options.type === 'confirm' ? 'bg-red-600 hover:bg-red-700 hover:shadow-red-500/20 shadow-red-500/10' : ''}>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  onClick={handleConfirm}
+                  disabled={options.validationValue ? inputValue !== options.validationValue : false}
+                  className={options.type === 'confirm' || options.validationValue ? 'bg-red-600 hover:bg-red-700 hover:shadow-red-500/20 shadow-red-500/10 disabled:opacity-30 disabled:bg-red-400' : ''}
+                >
                   {options.confirmText}
                 </Button>
               </div>

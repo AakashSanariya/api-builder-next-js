@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formService } from "../../services/form.service";
 import { FormModel } from "../../types/form.types";
 import { usePopup } from "../../contexts/PopupContext";
-import { Plus, Edit2, ExternalLink, Activity, Layout, Search, Layers, Box, Terminal, Globe } from "lucide-react";
+import { Plus, Edit2, ExternalLink, Activity, Layout, Search, Layers, Box, Terminal, Globe, Loader2 } from "lucide-react";
 
 import Button from "../../components/common/Button";
 
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [forms, setForms] = useState<FormModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const router = useRouter();
   const { showPopup } = usePopup();
 
@@ -33,14 +34,14 @@ export default function Dashboard() {
   }, []);
 
   const handleCreateForm = async () => {
-    const name = await showPopup({ 
-      type: "prompt", 
-      title: "New API Schema", 
-      message: "Enter a memorable name for your API Schema:", 
-      confirmText: "Create", 
-      cancelText: "Cancel" 
+    const name = await showPopup({
+      type: "prompt",
+      title: "New API Schema",
+      message: "Enter a memorable name for your API Schema:",
+      confirmText: "Create",
+      cancelText: "Cancel"
     });
-    
+
     if (!name) return;
 
     setIsCreating(true);
@@ -58,6 +59,36 @@ export default function Dashboard() {
       });
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDeleteSchema = async (form: FormModel) => {
+    const confirmed = await showPopup({
+      type: "confirm",
+      title: "Destroy Schema Entity",
+      message: `Are you sure you want to permanently destroy '${form.name}'? All submissions and endpoint logic will be erased.`,
+      confirmText: "Erase Entity",
+      cancelText: "Cancel",
+      validationValue: form.name
+    });
+
+    if (!confirmed) return;
+
+    setIsDeleting(form?._id ?? "");
+    try {
+      const res = await formService.deleteForm(form?._id ?? "");
+      if (res.success) {
+        fetchForms();
+      }
+    } catch (err) {
+      console.error(err);
+      await showPopup({
+        type: "alert",
+        title: "Delete Failed",
+        message: "An internal database error prevented this operation."
+      });
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -179,15 +210,28 @@ export default function Dashboard() {
                     View Submitted Data
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-12 rounded-xl text-gray-500 border-gray-50 hover:border-indigo-300 hover:text-indigo-600 bg-gray-50/10"
-                    onClick={() => router.push(`/view/${form.slug}`)}
-                  >
-                    <Globe size={14} className="mr-2" />
-                    Open Public Portal
-                  </Button>
+                  <div className="grid grid-cols-[1fr_50px] gap-3 relative z-10">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-12 rounded-xl text-gray-500 border-gray-50 hover:border-indigo-300 hover:text-indigo-600 bg-gray-50/10"
+                      onClick={() => router.push(`/view/${form.slug}`)}
+                    >
+                      <Globe size={14} className="mr-2" />
+                      Public Portal
+                    </Button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSchema(form);
+                      }}
+                      disabled={isDeleting === form._id}
+                      className="h-12 w-full flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all border border-red-100 shadow-sm disabled:opacity-50"
+                      title="Destroy Schema"
+                    >
+                      {isDeleting === form._id ? <Loader2 className="animate-spin" size={20} /> : <Plus className="rotate-45" size={20} />}
+                    </button>
+                  </div>
 
                   {/* Decorative Background Icon */}
                   <Layers className="absolute -right-8 -bottom-8 w-40 h-40 text-gray-50/50 group-hover:text-indigo-50/50 transition-colors duration-500 -rotate-12 pointer-events-none" />

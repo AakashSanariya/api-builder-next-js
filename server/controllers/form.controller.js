@@ -277,3 +277,47 @@ exports.deleteDynamicSubmission = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+// DELETE /forms/:id (Delete entire Form Schema + all its dynamic data)
+exports.deleteForm = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const form = await Form.findById(id);
+
+    if (!form) {
+      return res.status(404).json({ success: false, message: "Form not found" });
+    }
+
+    // Identify the precise collection name (MUST MATCH getDynamicDataModel)
+    const safeSlug = form.slug.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
+    const collectionName = `${safeSlug}_data`;
+    const modelName = `${safeSlug}_data`;
+    // 1. Drop the actual MongoDB collection directly via native driver
+    const db = mongoose.connection.db;
+    if (db) {
+      try {
+        const collections = await db.listCollections({ name: collectionName }).toArray();
+        if (collections.length > 0) {
+          await db.dropCollection(collectionName);
+          console.log(`Successfully dropped collection: ${collectionName}`);
+        }
+      } catch (dropErr) {
+        console.warn(`Could not drop collection ${collectionName}:`, dropErr.message);
+      }
+    }
+
+    // 2. Clear out the cached model from Mongoose to prevent re-instantiation errors
+    if (mongoose.models[modelName]) {
+      mongoose.deleteModel(modelName);
+    }
+
+    // 3. Delete the form schema record
+    await Form.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: `System Entity '${form.name}' neutralized. All modular blocks and associated traffic collections have been purged.`
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
