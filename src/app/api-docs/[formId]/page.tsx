@@ -13,7 +13,7 @@ export default function ApiDocsPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormModel | null>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -33,11 +33,13 @@ export default function ApiDocsPage() {
     if (formId) fetchForm();
   }, [formId]);
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
   };
+
+  const isCopied = (key: string) => copiedKey === key;
 
   if (loading) {
     return (
@@ -53,11 +55,11 @@ export default function ApiDocsPage() {
   const createEndpoint = `${baseUrl}/api/${form.slug}`;
   const listEndpoint = `${baseUrl}/api/${form.slug}/data?page=1&limit=20`;
   const byIdEndpoint = `${baseUrl}/api/${form.slug}/data/:recordId`;
+  const deleteEndpoint = `${baseUrl}/api/${form.slug}/data/:recordId`;
   
-  const sampleRequest = {};
+  const sampleRequest: Record<string, string> = {};
   form.fields.forEach(f => {
     if (f.type !== 'button') {
-        // @ts-ignore
         sampleRequest[f.name] = f.type === 'file' ? 'File binary' : 'Sample value';
     }
   });
@@ -88,6 +90,48 @@ export default function ApiDocsPage() {
       pages: 1,
     },
   };
+
+  const sampleDeleteResponse = {
+    success: true,
+    message: `Successfully deleted submission for '${form.name}'`,
+    timestamp: new Date().toISOString(),
+  };
+
+  // Check if any field is a file type
+  const hasFileFields = form.fields.some(f => f.type === 'file');
+
+  // Build cURL commands
+  const NL = '\n';
+  const CONT = ' \\';
+
+  const buildFormFlags = () =>
+    Object.entries(sampleRequest)
+      .map(([k, v]) => (v === 'File binary' ? `  -F "${k}=@/path/to/file"` : `  -F "${k}=${v}"`))
+      .join(CONT + NL);
+
+  const jsonBody = JSON.stringify(sampleRequest, null, 2);
+
+  const curlPost = hasFileFields
+    ? ['curl -X POST ' + createEndpoint, buildFormFlags()].join(CONT + NL)
+    : ['curl -X POST ' + createEndpoint, '  -H "Content-Type: application/json"', "  -d '" + jsonBody + "'"].join(CONT + NL);
+
+  const curlGetList = 'curl -X GET "' + listEndpoint + '"';
+
+  const curlGetById = 'curl -X GET ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID';
+
+  const curlPut = hasFileFields
+    ? ['curl -X PUT ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', buildFormFlags()].join(CONT + NL)
+    : ['curl -X PUT ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', '  -H "Content-Type: application/json"', "  -d '" + jsonBody + "'"].join(CONT + NL);
+
+  const curlDelete = 'curl -X DELETE ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID';
+
+  const curlCommands = [
+    { label: 'Create Submission', method: 'POST', methodClass: 'text-indigo-500 bg-indigo-50 border-indigo-100', curl: curlPost, key: 'curl-post' },
+    { label: 'List All Records', method: 'GET', methodClass: 'text-emerald-500 bg-emerald-50 border-emerald-100', curl: curlGetList, key: 'curl-get-list' },
+    { label: 'Get Single Record', method: 'GET', methodClass: 'text-cyan-500 bg-cyan-50 border-cyan-100', curl: curlGetById, key: 'curl-get-id' },
+    { label: 'Update Record', method: 'PUT', methodClass: 'text-amber-500 bg-amber-50 border-amber-100', curl: curlPut, key: 'curl-put' },
+    { label: 'Delete Record', method: 'DELETE', methodClass: 'text-red-500 bg-red-50 border-red-100', curl: curlDelete, key: 'curl-delete' },
+  ];
 
   return (
     <div className="min-h-screen bg-[#FDFEFE] py-16 px-8 relative overflow-hidden">
@@ -134,10 +178,10 @@ export default function ApiDocsPage() {
                               <span className="text-indigo-400 font-black px-3 py-1 bg-indigo-400/10 rounded-lg">POST</span>
                               <span className="flex-1 truncate tracking-tight text-gray-300">{createEndpoint}</span>
                               <button
-                                  onClick={() => copyToClipboard(createEndpoint)}
+                                  onClick={() => copyToClipboard(createEndpoint, 'ep-post')}
                                   className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
                               >
-                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                                  {isCopied('ep-post') ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
                               </button>
                           </div>
                       </div>
@@ -147,10 +191,10 @@ export default function ApiDocsPage() {
                               <span className="text-emerald-400 font-black px-3 py-1 bg-emerald-400/10 rounded-lg">GET</span>
                               <span className="flex-1 truncate tracking-tight text-gray-300">{listEndpoint}</span>
                               <button
-                                  onClick={() => copyToClipboard(listEndpoint)}
+                                  onClick={() => copyToClipboard(listEndpoint, 'ep-get-list')}
                                   className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
                               >
-                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                                  {isCopied('ep-get-list') ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
                               </button>
                           </div>
                       </div>
@@ -160,10 +204,10 @@ export default function ApiDocsPage() {
                               <span className="text-cyan-400 font-black px-3 py-1 bg-cyan-400/10 rounded-lg">GET</span>
                               <span className="flex-1 truncate tracking-tight text-gray-300">{byIdEndpoint}</span>
                               <button
-                                  onClick={() => copyToClipboard(byIdEndpoint)}
+                                  onClick={() => copyToClipboard(byIdEndpoint, 'ep-get-id')}
                                   className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
                               >
-                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                                  {isCopied('ep-get-id') ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
                               </button>
                           </div>
                       </div>
@@ -173,10 +217,23 @@ export default function ApiDocsPage() {
                               <span className="text-amber-400 font-black px-3 py-1 bg-amber-400/10 rounded-lg">PUT</span>
                               <span className="flex-1 truncate tracking-tight text-gray-300">{byIdEndpoint}</span>
                               <button
-                                  onClick={() => copyToClipboard(byIdEndpoint)}
+                                  onClick={() => copyToClipboard(byIdEndpoint, 'ep-put')}
                                   className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
                               >
-                                  {copied ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                                  {isCopied('ep-put') ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                              </button>
+                          </div>
+                      </div>
+
+                      <div className="relative group">
+                          <div className="flex items-center gap-4 bg-gray-950 text-white p-6 rounded-[2rem] font-mono text-sm overflow-hidden shadow-2xl group-hover:shadow-red-200 transition-shadow">
+                              <span className="text-red-400 font-black px-3 py-1 bg-red-400/10 rounded-lg">DELETE</span>
+                              <span className="flex-1 truncate tracking-tight text-gray-300">{deleteEndpoint}</span>
+                              <button
+                                  onClick={() => copyToClipboard(deleteEndpoint, 'ep-delete')}
+                                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-white"
+                              >
+                                  {isCopied('ep-delete') ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
                               </button>
                           </div>
                       </div>
@@ -190,6 +247,47 @@ export default function ApiDocsPage() {
                         </p>
                     </div>
                     )}
+                </motion.section>
+
+                {/* cURL Commands Section */}
+                <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-[2.5rem] p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                    <div className="flex items-center gap-3 mb-8">
+                       <div className="p-3 bg-gray-900 text-white rounded-2xl">
+                          <Terminal size={20} />
+                       </div>
+                       <div>
+                         <h2 className="text-xl font-black text-gray-800 font-display">cURL Commands</h2>
+                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Ready to paste into terminal or import into Postman</p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      {curlCommands.map((cmd) => (
+                        <div key={cmd.key} className="group">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className={`font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-lg border ${cmd.methodClass}`}>{cmd.method}</span>
+                            <span className="text-sm font-bold text-gray-700">{cmd.label}</span>
+                          </div>
+                          <div className="relative">
+                            <pre className="bg-gray-950 text-gray-300 p-6 pr-16 rounded-2xl font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-all shadow-xl">{cmd.curl}</pre>
+                            <button
+                              onClick={() => copyToClipboard(cmd.curl, cmd.key)}
+                              className="absolute top-4 right-4 p-3 bg-white/5 hover:bg-white/15 rounded-xl transition-all text-gray-500 hover:text-white border border-white/10"
+                              title="Copy to clipboard"
+                            >
+                              {isCopied(cmd.key) ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-3">
+                        <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-blue-700 font-bold uppercase tracking-tight leading-relaxed">
+                            Replace <span className="text-blue-900 font-mono">RECORD_ID</span> with an actual record ID from your submissions. You can import cURL commands directly into <span className="text-blue-900">Postman</span> via File → Import.
+                        </p>
+                    </div>
                 </motion.section>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -266,6 +364,31 @@ export default function ApiDocsPage() {
                     <motion.section
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 }}
+                        className="bg-white rounded-[2.5rem] p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
+                    >
+                        <div className="flex items-center gap-3 mb-8">
+                           <div className="p-3 bg-red-50 text-red-600 rounded-2xl">
+                              <Code size={20} />
+                           </div>
+                           <h2 className="text-xl font-black text-gray-800 font-display">Delete Record Response</h2>
+                        </div>
+                        <pre className="bg-gray-50 p-8 rounded-[2rem] border border-gray-50 text-xs text-gray-700 overflow-x-auto font-mono leading-relaxed shadow-inner">
+                        {JSON.stringify(sampleDeleteResponse, null, 2)}
+                        </pre>
+                        <div className="mt-6 p-4 bg-red-50/50 rounded-2xl border border-red-100 flex items-start gap-3">
+                            <Info size={16} className="text-red-500 shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-red-700 font-bold uppercase tracking-tight leading-relaxed">
+                                This action is <span className="text-red-900">irreversible</span>. The record will be permanently removed from the database.
+                            </p>
+                        </div>
+                    </motion.section>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
                         className="bg-white rounded-[2.5rem] p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
                     >
@@ -273,13 +396,14 @@ export default function ApiDocsPage() {
                            <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
                               <Info size={20} />
                            </div>
-                           <h2 className="text-xl font-black text-gray-800 font-display">Edit Flow</h2>
+                           <h2 className="text-xl font-black text-gray-800 font-display">CRUD Flow</h2>
                         </div>
                         <div className="space-y-4 text-sm text-gray-700">
                           <p><span className="font-black">1.</span> Submit data with <span className="font-mono">POST /api/{form.slug}</span></p>
                           <p><span className="font-black">2.</span> Fetch records with <span className="font-mono">GET /api/{form.slug}/data</span></p>
                           <p><span className="font-black">3.</span> Get one record with <span className="font-mono">GET /api/{form.slug}/data/:recordId</span></p>
                           <p><span className="font-black">4.</span> Update using <span className="font-mono">PUT /api/{form.slug}/data/:recordId</span></p>
+                          <p><span className="font-black">5.</span> Delete using <span className="font-mono text-red-600">DELETE /api/{form.slug}/data/:recordId</span></p>
                         </div>
                     </motion.section>
                 </div>

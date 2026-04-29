@@ -11,8 +11,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isPublicRoute = pathname?.startsWith("/view");
   const isBuilderRoute = pathname?.startsWith("/builder");
   
-  // Dashboard, API Docs, and other settings should show sidebar
-  const showSidebar = !isPublicRoute && !isBuilderRoute && pathname !== "/";
+  // Dashboard, API Docs, View, and other settings should show sidebar
+  const showSidebar = !isBuilderRoute && pathname !== "/";
 
   if (!showSidebar) {
     return <>{children}</>;

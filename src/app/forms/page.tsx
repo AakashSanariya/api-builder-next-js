@@ -170,7 +170,7 @@ export default function Dashboard() {
                     variant="outline"
                     size="sm"
                     className="w-full h-12 rounded-xl text-gray-500 border-gray-50 hover:border-indigo-300 hover:text-indigo-600 bg-gray-50/10"
-                    onClick={() => window.open(`/view/${form.slug}`, '_blank')}
+                    onClick={() => router.push(`/view/${form.slug}`)}
                   >
                     <Globe size={14} className="mr-2" />
                     Open Public Portal

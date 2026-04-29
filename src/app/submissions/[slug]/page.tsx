@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formService } from "../../../services/form.service";
 import Button from "../../../components/common/Button";
-import { ArrowLeft, Edit2, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit2, Trash2, Loader2 } from "lucide-react";
 
 type SubmissionRow = {
   _id: string;
@@ -18,6 +18,25 @@ export default function SubmissionListPage() {
   const [rows, setRows] = useState<SubmissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (recordId: string) => {
+    if (!confirm("Are you sure you want to delete this record? This action cannot be undone.")) return;
+
+    setDeletingId(recordId);
+    try {
+      const res = await formService.deleteDynamicSubmission(slug as string, recordId);
+      if (res.success) {
+        setRows((prev) => prev.filter((row) => row._id !== recordId));
+      } else {
+        alert(res.message || "Failed to delete record.");
+      }
+    } catch (err: any) {
+      alert(err.message || "An error occurred while deleting.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -94,13 +113,25 @@ export default function SubmissionListPage() {
                       {row.createdAt ? new Date(row.createdAt).toLocaleString() : "-"}
                     </td>
                     <td className="px-4 py-3">
-                      <Button
-                        size="sm"
-                        onClick={() => window.open(`/view/${slug}?editId=${row._id}`, "_blank")}
-                      >
-                        <Edit2 size={14} className="mr-2" />
-                        Edit
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => router.push(`/view/${slug}?editId=${row._id}`)}
+                        >
+                          <Edit2 size={14} className="mr-2" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-500 border-red-100 hover:bg-red-50 hover:border-red-300"
+                          onClick={() => handleDelete(row._id)}
+                          isLoading={deletingId === row._id}
+                        >
+                          <Trash2 size={14} className="mr-2" />
+                          Delete
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

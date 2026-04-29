@@ -48,4 +48,13 @@ export const formService = {
         body: data,
       }
     ).then((res) => res.json()),
+
+  deleteDynamicSubmission: (slug: string, recordId: string) =>
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/${slug}/data/${recordId}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      }
+    ).then((res) => res.json()),
 };

@@ -9,6 +9,7 @@ router.post("/api/:slug", upload.any(), dynamicValidation, formController.handle
 router.get("/api/:slug/data", formController.listDynamicSubmissions);
 router.get("/api/:slug/data/:recordId", formController.getDynamicSubmission);
 router.put("/api/:slug/data/:recordId", upload.any(), dynamicValidation, formController.updateDynamicSubmission);
+router.delete("/api/:slug/data/:recordId", formController.deleteDynamicSubmission);
 
 // Management Routes
 router.get("/", formController.getAllForms);

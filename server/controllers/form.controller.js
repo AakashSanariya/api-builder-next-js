@@ -205,3 +205,33 @@ exports.updateDynamicSubmission = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// DELETE /api/:slug/data/:recordId (Delete a submitted record)
+exports.deleteDynamicSubmission = async (req, res) => {
+  try {
+    const { slug, recordId } = req.params;
+    const form = await Form.findOne({ slug });
+
+    if (!form) {
+      return res.status(404).json({ success: false, message: "Form not found" });
+    }
+
+    const DynamicData = getDynamicDataModel(slug);
+    const deletedRecord = await DynamicData.findOneAndDelete({
+      _id: recordId,
+      formSlug: slug,
+    });
+
+    if (!deletedRecord) {
+      return res.status(404).json({ success: false, message: "Submitted data not found" });
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully deleted submission for '${form.name}'`,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

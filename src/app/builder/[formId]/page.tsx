@@ -116,7 +116,7 @@ export default function BuilderPage() {
           <Button 
             variant="glass" 
             size="sm" 
-            onClick={() => window.open(`/view/${formSlug}`, '_blank')}
+            onClick={() => router.push(`/view/${formSlug}`)}
             className="text-gray-400 border-gray-100"
           >
             <Globe size={18} className="mr-2 opacity-50" />
