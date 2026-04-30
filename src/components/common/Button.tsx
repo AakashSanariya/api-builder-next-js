@@ -1,16 +1,16 @@
 "use client";
-
+ 
 import React from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-
+ 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
   variant?: "primary" | "secondary" | "outline" | "danger" | "glass";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
-
+ 
 const Button: React.FC<ButtonProps> = ({
   children,
   variant = "primary",
@@ -22,7 +22,7 @@ const Button: React.FC<ButtonProps> = ({
   onClick,
   ...rest
 }) => {
-  const baseStyles = "relative inline-flex items-center justify-center font-bold transition-all disabled:opacity-50 disabled:pointer-events-none overflow-hidden cursor-pointer select-none";
+  const baseStyles = "relative inline-flex items-center justify-center font-bold transition-all disabled:opacity-50 disabled:pointer-events-none overflow-hidden cursor-pointer select-none touch-manipulation";
   
   const variants = {
     primary:   "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-[0_8px_30px_rgba(79,70,229,0.3)] hover:shadow-[0_20px_40px_rgba(79,70,229,0.4)] hover:-translate-y-0.5",
@@ -31,13 +31,13 @@ const Button: React.FC<ButtonProps> = ({
     danger:    "bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-[0_8px_30px_rgba(239,68,68,0.3)]",
     glass:     "bg-white/10 backdrop-blur-md border-2 border-gray-100 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/20",
   };
-
+ 
   const sizes = {
-    sm: "h-10 px-5 text-xs rounded-2xl",
-    md: "h-12 px-8 text-sm rounded-[1.25rem]",
-    lg: "h-16 px-10 text-base rounded-[1.5rem]",
+    sm: "min-h-10 px-4 md:px-5 text-xs rounded-xl md:rounded-2xl",
+    md: "min-h-12 px-6 md:px-8 text-xs md:text-sm rounded-xl md:rounded-[1.25rem]",
+    lg: "min-h-14 md:min-h-16 px-8 md:px-10 text-sm md:text-base rounded-xl md:rounded-[1.5rem]",
   };
-
+ 
   return (
     <motion.div
       whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
@@ -53,20 +53,20 @@ const Button: React.FC<ButtonProps> = ({
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
-            <Loader2 className="animate-spin shrink-0" size={16} />
-            <span>Processing</span>
+            <Loader2 className="animate-spin shrink-0 w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Processing</span>
           </span>
         ) : (
           <span className="flex items-center justify-center gap-2 leading-none">
             {children}
           </span>
         )}
-
+ 
         {/* Subtle shine sweep */}
         <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
       </button>
     </motion.div>
   );
 };
-
+ 
 export default Button;

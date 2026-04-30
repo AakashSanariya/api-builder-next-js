@@ -43,8 +43,10 @@ h1, h2, h3, h4, .font-display {
 
 /* ——— Premium canvas dot grid ——— */
 .canvas-dot-grid {
-  background-image: radial-gradient(#e5e7eb 1.5px, transparent 1.5px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* ——— Custom scrollbar ——— */

@@ -8,7 +8,7 @@ import { useBuilderStore } from "../../../store/useBuilderStore";
 import BuilderSidebar from "../../../components/builder/BuilderSidebar";
 import BuilderCanvas from "../../../components/builder/BuilderCanvas";
 import FieldSettingsPanel from "../../../components/builder/FieldSettingsPanel";
-import { Loader2, ArrowLeft, Save, Rocket, Layout, Globe } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Rocket, Layout, Globe, PanelLeftClose, PanelLeftOpen, Settings2 } from "lucide-react";
 import Button from "../../../components/common/Button";
 import { usePopup } from "../../../contexts/PopupContext";
 
@@ -18,6 +18,8 @@ export default function BuilderPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { showPopup } = usePopup();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   
   const { 
     setSections, 
@@ -28,7 +30,8 @@ export default function BuilderPage() {
     formName,
     formSlug, 
     isPublished,
-    reset 
+    reset,
+    selectedField
   } = useBuilderStore();
 
 
@@ -108,7 +111,7 @@ export default function BuilderPage() {
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
         >
-            <Loader2 className="text-indigo-600" size={48} />
+            <Loader2 className="text-indigo-600 w-9 h-9 md:w-12 md:h-12" />
         </motion.div>
       </div>
     );
@@ -123,40 +126,57 @@ export default function BuilderPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#F8FAFC]">
       {/* Premium Glass Header */}
-      <header className="h-20 bg-white/80 backdrop-blur-xl border-b px-8 flex items-center justify-between z-40 shrink-0 sticky top-0">
-        <div className="flex items-center gap-6">
+      <header className="h-16 md:h-20 bg-white/80 backdrop-blur-xl border-b px-4 md:px-8 flex items-center justify-between z-40 shrink-0 sticky top-0 gap-2 md:gap-0">
+        <div className="flex items-center gap-2 md:gap-6 min-w-0">
           <motion.button 
             whileHover={{ scale: 1.1, x: -2 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => router.push("/forms")}
-            className="p-3 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-2xl transition-all"
+            className="p-2 md:p-3 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl md:rounded-2xl transition-all shrink-0"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={16} className="" />
           </motion.button>
-          
-          <div className="h-8 w-px bg-gray-100" />
+           
+          <div className="h-6 md:h-8 w-px bg-gray-100 shrink-0" />
 
-          <div>
-            <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black text-gray-900 font-display tracking-tight leading-none">{formName}</h1>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 md:gap-2">
+                <h1 className="text-base md:text-xl font-black text-gray-900 font-display tracking-tight leading-none truncate">{formName}</h1>
 
-                <div className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border ${isPublished ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                <div className={`px-1.5 py-0.5 md:px-2 rounded text-[7px] md:text-[8px] font-black uppercase tracking-widest border shrink-0 ${isPublished ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                     {isPublished ? 'Live' : 'Draft'}
                 </div>
             </div>
-            <div className="flex items-center gap-2 mt-1.5">
+            <div className="hidden md:flex items-center gap-2 mt-1.5">
                 <Globe size={10} className="text-gray-300" />
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Schema ID: {formId}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter truncate">Schema ID: {formId}</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+          {/* Mobile Menu Buttons */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 md:hidden bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl transition-all"
+            title="Toggle Components"
+          >
+            <Layout size={16} />
+          </button>
+          
+          <button
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            className={`p-2 md:hidden rounded-xl transition-all ${selectedField ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400 hover:text-gray-900'}`}
+            title="Toggle Settings"
+          >
+            <Settings2 size={16} />
+          </button>
+
           <Button 
             variant="glass" 
             size="sm" 
             onClick={() => router.push(`/view/${formSlug}`)}
-            className="text-gray-400 border-gray-100"
+            className="hidden md:flex text-gray-400 border-gray-100"
           >
             <Globe size={18} className="mr-2 opacity-50" />
             Live Preview
@@ -167,7 +187,7 @@ export default function BuilderPage() {
             onClick={() => handleSave(false)}
             isLoading={saving}
             disabled={isInvalid}
-            className={`border-gray-100 bg-white ${isInvalid ? 'opacity-50 grayscale' : ''}`}
+            className={`hidden md:flex border-gray-100 bg-white ${isInvalid ? 'opacity-50 grayscale' : ''}`}
             title={isInvalid ? (hasEmptyKeys ? "One or more API Keys are empty" : "Duplicate API Keys detected") : "Sync changes"}
           >
             <Save size={18} className="mr-2 opacity-50" />
@@ -179,20 +199,76 @@ export default function BuilderPage() {
             onClick={() => handleSave(true)}
             isLoading={saving}
             disabled={isInvalid}
-            className={isInvalid ? 'opacity-50 grayscale' : ''}
+            className={`${isInvalid ? 'opacity-50 grayscale' : ''} text-xs md:text-sm px-3 md:px-4`}
             title={isInvalid ? (hasEmptyKeys ? "One or more API Keys are empty" : "Duplicate API Keys detected") : isPublished ? "Update Production" : "Deploy API"}
           >
-            <Rocket size={18} className="mr-2" />
-            {isPublished ? 'Update Production' : 'Deploy API'}
+            <Rocket size={14} className="md:mr-2 " />
+            <span className="hidden sm:inline">{isPublished ? 'Update' : 'Deploy'}</span>
           </Button>
         </div>
       </header>
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden relative">
-        <BuilderSidebar />
+        {/* Mobile Sidebar Overlay */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSidebarOpen(false)}
+                className="absolute inset-0 bg-black/50 z-50 md:hidden"
+              />
+              <motion.aside
+                initial={{ x: -320 }}
+                animate={{ x: 0 }}
+                exit={{ x: -320 }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                className="absolute left-0 top-0 bottom-0 z-50 w-[320px] md:hidden"
+              >
+                <BuilderSidebar />
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <BuilderSidebar />
+        </div>
+
         <BuilderCanvas />
-        <FieldSettingsPanel />
+        
+        {/* Mobile Settings Overlay */}
+        <AnimatePresence>
+          {settingsOpen && selectedField && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSettingsOpen(false)}
+                className="absolute inset-0 bg-black/50 z-50 md:hidden"
+              />
+              <motion.aside
+                initial={{ x: 360 }}
+                animate={{ x: 0 }}
+                exit={{ x: 360 }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                className="absolute right-0 top-0 bottom-0 z-50 w-[360px] md:hidden"
+              >
+                <FieldSettingsPanel />
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Desktop Settings Panel */}
+        <div className="hidden md:block">
+          <FieldSettingsPanel />
+        </div>
       </div>
 
       {/* Decorative backdrop glow */}

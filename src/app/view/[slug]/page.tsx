@@ -174,7 +174,7 @@ export default function PublicFormView() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-10 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white p-12 rounded-[3rem] shadow-2xl border border-gray-100 max-w-md">
           <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-[1.5rem] flex items-center justify-center mb-8 mx-auto">
-            <AlertCircle size={40} />
+                    <AlertCircle size={32} className="" />
           </div>
           <h1 className="text-2xl font-black text-gray-900 font-display tracking-tight mb-4">{!form ? "404: Not Found" : "Not Accessible"}</h1>
           <p className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-8 leading-relaxed">
@@ -191,7 +191,7 @@ export default function PublicFormView() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-20 px-4 flex justify-center items-start overflow-x-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] py-10 md:py-20 px-3 md:px-4 flex justify-center items-start overflow-x-hidden">
       {/* Decorative Elements */}
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-50/50 rounded-full blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-50/50 rounded-full blur-[120px] pointer-events-none" />
@@ -201,34 +201,34 @@ export default function PublicFormView() {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-2xl w-full relative z-10"
       >
-        <div className="bg-white rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.05)] border border-gray-50 overflow-hidden">
+        <div className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.05)] border border-gray-50 overflow-hidden">
           {/* Form Header */}
-          <header className="px-12 pt-16 pb-12 text-center border-b border-gray-50 bg-gray-50/20 backdrop-blur-sm">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm mb-6">
-              <Zap size={14} className="text-indigo-600" />
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Security Verified</span>
+          <header className="px-6 md:px-12 pt-10 md:pt-16 pb-8 md:pb-12 text-center border-b border-gray-50 bg-gray-50/20 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm mb-4 md:mb-6">
+              <Zap size={12} className="text-indigo-600" />
+              <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Security Verified</span>
             </div>
-            <h1 className="text-4xl font-black text-gray-900 font-display tracking-tight leading-none mb-4 italic">
+            <h1 className="text-2xl md:text-4xl font-black text-gray-900 font-display tracking-tight leading-none mb-3 md:mb-4 italic">
               {form.name}
             </h1>
-            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.2em]">Secure Data Intake Portal</p>
+            <p className="text-gray-400 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.2em]">Secure Data Intake Portal</p>
           </header>
 
-          <div className="p-12">
+          <div className="p-6 md:p-12">
             <AnimatePresence mode="wait">
               {status === "success" ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-10"
+                  className="text-center py-8 md:py-10"
                 >
-                  <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-50 text-emerald-500 rounded-[2rem] mb-10 shadow-xl shadow-emerald-50">
-                    <CheckCircle2 size={48} />
+                  <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-[1.5rem] md:rounded-[2rem] mb-8 md:mb-10 shadow-xl shadow-emerald-50">
+                    <CheckCircle2 size={40} className="" />
                   </div>
-                  <h2 className="text-3xl font-black text-gray-900 font-display tracking-tight mb-4 leading-none">
+                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 font-display tracking-tight mb-3 md:mb-4 leading-none">
                     {editRecordId ? "Update Success" : "Transmission Success"}
                   </h2>
-                  <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mb-12">
+                  <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mb-8 md:mb-12">
                     {editRecordId
                       ? "Your prefilled data has been updated and stored."
                       : "Your data has been successfully validated and stored."}
@@ -240,43 +240,44 @@ export default function PublicFormView() {
                     onClick={() => setStatus("idle")}
                   >
                     Submit Another Response
-                    <ArrowRight size={18} className="ml-2" />
+                    <ArrowRight size={16} className="ml-2" />
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full mt-4"
+                    className="w-full mt-3 md:mt-4"
                     onClick={() => router.push(`/submissions/${slug}`)}
                   >
-                    <List size={18} className="mr-2" />
+                    <List size={16} className="mr-2" />
                     View Submissions
                   </Button>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-10">
+                <form onSubmit={handleSubmit} className="space-y-8 md:space-y-10">
                   {status === "error" && !Object.keys(validationErrors).length && (
-                    <motion.div
+                    <motion.div 
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
-                      className="p-6 bg-red-50 rounded-2xl border border-red-100 flex items-center gap-4 text-red-700"
+                      exit={{ opacity: 0, height: 0 }}
+                      className="text-[10px] md:text-[11px] font-bold text-red-500 px-2 flex items-center gap-1 mt-1 font-display"
                     >
-                      <AlertCircle className="shrink-0" size={24} />
-                      <p className="text-xs font-black uppercase tracking-tight">{errorMsg}</p>
+                      <span className="w-1 h-1 bg-red-500 rounded-full" />
+                      {errorMsg}
                     </motion.div>
                   )}
 
-                  <div className="space-y-16">
+                  <div className="space-y-10 md:space-y-16">
                     {form.sections?.map((section) => (
-                      <div key={section.id} className="space-y-8">
+                      <div key={section.id} className="space-y-6 md:space-y-8">
                         {section.title && (
-                          <div className="flex items-center gap-4 px-2">
-                            <h3 className="text-xs font-black text-indigo-600 uppercase tracking-[0.3em] font-display whitespace-nowrap">
+                          <div className="flex items-center gap-3 md:gap-4 px-2">
+                            <h3 className="text-[10px] md:text-xs font-black text-indigo-600 uppercase tracking-[0.3em] font-display whitespace-nowrap">
                               {section.title}
                             </h3>
                             <div className="h-px w-full bg-gradient-to-r from-indigo-100 to-transparent" />
                           </div>
                         )}
-                        <div className="space-y-10">
+                        <div className="space-y-8 md:space-y-10">
                           {section.fields.map((field) => (
                             <FieldRenderer
                               key={field.id}
@@ -291,12 +292,12 @@ export default function PublicFormView() {
                     ))}
                   </div>
 
-                  <div className="pt-10 flex flex-col sm:flex-row gap-4">
+                  <div className="pt-6 md:pt-10 flex flex-col sm:flex-row gap-3 md:gap-4">
                     <Button
                       type="button"
                       variant="outline"
                       size="lg"
-                      className="w-full py-6 text-lg rounded-[2rem] border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                      className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem] border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50"
                       onClick={() => router.back()}
                     >
                       Cancel
@@ -304,11 +305,11 @@ export default function PublicFormView() {
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full py-6 text-lg rounded-[2rem]"
+                      className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem]"
                       isLoading={submitting}
                     >
                       {editRecordId ? "Sync Changes" : "Confirm Submission"}
-                      <ArrowRight size={22} className="ml-3" />
+                      <ArrowRight size={18} className="ml-2 md:ml-3" />
                     </Button>
                   </div>
                 </form>
@@ -316,8 +317,8 @@ export default function PublicFormView() {
             </AnimatePresence>
           </div>
 
-          <footer className="px-12 py-8 bg-gray-50/50 border-t border-gray-50 text-center">
-            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em]">
+          <footer className="px-6 md:px-12 py-6 md:py-8 bg-gray-50/50 border-t border-gray-50 text-center">
+            <p className="text-[8px] md:text-[9px] text-gray-400 font-black uppercase tracking-[0.3em]">
               Developed by Aakash Sanariya
             </p>
           </footer>

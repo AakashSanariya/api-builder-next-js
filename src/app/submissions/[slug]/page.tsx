@@ -83,36 +83,39 @@ export default function SubmissionListPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="animate-spin text-indigo-600" size={40} />
+        <Loader2 className="animate-spin text-indigo-600 w-8 h-8 md:w-10 md:h-10" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <Button variant="outline" size="sm" onClick={() => router.push("/forms")}>
-          <ArrowLeft size={16} className="mr-2" />
-          Back to Forms
+    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-4 md:space-y-8">
+        <Button variant="outline" size="sm" onClick={() => router.push("/forms")} className="text-xs md:text-sm">
+          <ArrowLeft size={14} className="mr-2" />
+          <span className="hidden sm:inline">Back to Forms</span>
+          <span className="sm:hidden">Back</span>
         </Button>
 
         <div>
-          <h1 className="text-3xl font-black text-gray-900">Submitted Data: {slug}</h1>
-          <p className="text-gray-500 text-sm mt-2">Each row can be opened in edit mode.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900">Submitted Data: <span className="text-indigo-600">{slug}</span></h1>
+          <p className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2">Each row can be opened in edit mode.</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-4 text-sm font-bold">
+          <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 md:p-4 text-xs md:text-sm font-bold">
             {error}
           </div>
         )}
 
         {!rows.length ? (
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 text-gray-500">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 md:p-8 text-gray-500 text-sm">
             No submissions found for this view yet.
           </div>
         ) : (
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            {/* Desktop Table */}
+            <div className="hidden md:block">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
@@ -168,6 +171,59 @@ export default function SubmissionListPage() {
                 ))}
               </tbody>
             </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {rows.map((row) => (
+                <div key={row._id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-mono text-xs text-gray-500 truncate flex-1">
+                      {row._id}
+                    </div>
+                    <div className="text-[10px] text-gray-400 shrink-0">
+                      {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "-"}
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-700 bg-gray-50 rounded-lg p-3 truncate">
+                    {(() => {
+                      const flat = flattenData(row.data);
+                      return Object.entries(flat)
+                        .slice(0, 2)
+                        .map(([fk, fv]) => {
+                          const displayVal = Array.isArray(fv) 
+                            ? fv.map(item => String(item)).join(", ")
+                            : String(fv);
+                          return `${fk}: ${displayVal}`;
+                        })
+                        .join(" | ");
+                    })()}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => router.push(`/view/${slug}?editId=${row._id}`)}
+                    >
+                      <Edit2 size={12} className="mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs text-red-500 border-red-100 hover:bg-red-50 hover:border-red-300"
+                      onClick={() => handleDelete(row._id)}
+                      isLoading={deletingId === row._id}
+                    >
+                      <Trash2 size={12} className="mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

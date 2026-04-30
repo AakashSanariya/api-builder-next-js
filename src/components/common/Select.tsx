@@ -70,28 +70,29 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
       ref={containerRef}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex flex-col gap-2 w-full relative ${className}`}
+      className={`flex flex-col gap-1.5 md:gap-2 w-full relative ${className}`}
     >
       <div className="flex justify-between items-end px-1">
-        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.1em] font-display">
+        <label className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-[0.1em] font-display">
           {label}
-          {props.required && <span className="text-indigo-500 ml-1 font-bold text-lg leading-none">*</span>}
+          {props.required && <span className="text-indigo-500 ml-1 font-bold text-base md:text-lg leading-none">*</span>}
         </label>
-        {props.multiple && <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Multi-Select</span>}
+        {props.multiple && <span className="text-[8px] md:text-[9px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Multi</span>}
       </div>
 
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full min-h-14 px-5 py-3 rounded-[1.25rem] border-2 bg-white transition-all duration-300 flex flex-wrap gap-2 items-center cursor-pointer
+        className={`w-full min-h-12 md:min-h-14 px-4 md:px-5 py-3 rounded-xl md:rounded-[1.25rem] border-2 bg-white transition-all duration-300 flex flex-wrap gap-2 items-center cursor-pointer touch-manipulation
           ${error 
             ? "border-red-100 shadow-[0_0_20px_rgb(239,68,68,0.05)]" 
             : isOpen ? "border-indigo-600 shadow-[0_10px_30px_rgb(79,70,229,0.08)]" : "border-gray-50 hover:border-gray-200 bg-gray-50/30"
-          }`}
+          }
+        `}
       >
-        {!props.multiple && !value && <span className="text-gray-300 font-medium">Select {label.toLowerCase()}...</span>}
+        {!props.multiple && !value && <span className="text-gray-300 font-medium text-xs md:text-sm">Select {label.toLowerCase()}...</span>}
         
         {props.multiple && Array.isArray(value) && value.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 md:gap-2">
             {value.map((v, i) => {
               const opt = options.find(o => {
                 const val = o.id || (typeof o.value === 'object' ? JSON.stringify(o.value) : o.value);
@@ -102,15 +103,15 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
                   key={i} 
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-tight py-1.5 pl-3 pr-2 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-200"
+                  className="bg-indigo-600 text-white text-[9px] md:text-[10px] font-black uppercase tracking-tight py-1 pl-2 md:py-1.5 md:pl-3 pr-1.5 md:pr-2 rounded-lg md:rounded-xl flex items-center gap-1 md:gap-2 shadow-lg shadow-indigo-200"
                 >
-                  {opt?.label || String(v)}
+                  <span className="max-w-[100px] md:max-w-none truncate">{opt?.label || String(v)}</span>
                   <button 
                     type="button"
                     onClick={(e) => { e.stopPropagation(); handleSelect(opt || { label: String(v), value: v }); }}
-                    className="hover:bg-white/20 rounded-lg p-0.5"
+                    className="hover:bg-white/20 rounded p-0.5"
                   >
-                    <X size={12} />
+                    <X size={10} className="" />
                   </button>
                 </motion.span>
               );
@@ -118,17 +119,17 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
           </div>
         ) : (
           !props.multiple && value && (
-            <span className="text-gray-700 font-bold">
+            <span className="text-gray-700 font-bold text-sm md:text-base">
               {options.find(o => {
                  const val = o.id || (typeof o.value === 'object' ? JSON.stringify(o.value) : o.value);
                  return String(val) === (typeof value === 'object' ? JSON.stringify(value) : String(value));
-              })?.label || String(value)}
+               })?.label || String(value)}
             </span>
           )
         )}
 
         <div className="ml-auto text-gray-400 group-hover:text-indigo-500 transition-colors">
-          <ChevronDown size={20} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={16} className={`md:w-5 md:h-5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </div>
 
@@ -138,20 +139,20 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-full left-0 right-0 mt-3 bg-white border border-gray-100 rounded-[2rem] shadow-[0_25px_70px_rgba(0,0,0,0.1)] z-50 overflow-hidden backdrop-blur-xl"
+            className="absolute top-full left-0 right-0 mt-2 md:mt-3 bg-white border border-gray-100 rounded-xl md:rounded-[2rem] shadow-lg z-50 overflow-hidden backdrop-blur-xl"
           >
-            <div className="p-4 border-b border-gray-50 flex items-center gap-3 bg-gray-50/30">
-               <Search size={16} className="text-gray-400" />
+            <div className="p-3 md:p-4 border-b border-gray-50 flex items-center gap-2 md:gap-3 bg-gray-50/30">
+               <Search size={14} className="text-gray-400" />
                <input 
                   autoFocus
-                  placeholder="Filter entities..."
+                  placeholder="Filter..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-full placeholder:text-gray-300"
                   onClick={(e) => e.stopPropagation()}
                />
             </div>
-            <div className="max-h-64 overflow-y-auto custom-scrollbar p-3">
+            <div className="max-h-48 md:max-h-64 overflow-y-auto custom-scrollbar p-2 md:p-3">
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((opt, idx) => {
                   const active = isSelected(opt);
@@ -160,21 +161,21 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
                       key={idx}
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleSelect(opt); }}
-                      className={`w-full text-left p-4 rounded-2xl flex items-center justify-between transition-all duration-200 mb-1 last:mb-0
+                      className={`w-full text-left p-3 md:p-4 rounded-xl md:rounded-2xl flex items-center justify-between transition-all duration-200 mb-0.5 md:mb-1 last:mb-0 touch-manipulation
                         ${active ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-600'}
                       `}
                     >
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black font-display uppercase tracking-tight">{opt.label}</span>
-                        {opt.id && <span className="text-[9px] font-mono font-bold opacity-50">ID: {opt.id}</span>}
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-black font-display uppercase tracking-tight truncate">{opt.label}</span>
+                        {opt.id && <span className="text-[8px] md:text-[9px] font-mono font-bold opacity-50 truncate">ID: {opt.id}</span>}
                       </div>
-                      {active && <Check size={18} className="text-indigo-600" />}
+                      {active && <Check size={16} className="text-indigo-600 shrink-0" />}
                     </button>
                   );
                 })
               ) : (
-                <div className="p-8 text-center">
-                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No matching entities</p>
+                <div className="p-6 md:p-8 text-center">
+                   <p className="text-[9px] md:text-[10px] font-black text-gray-300 uppercase tracking-widest">No matching entities</p>
                 </div>
               )}
             </div>
@@ -188,7 +189,7 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="text-[11px] font-bold text-red-500 px-2 flex items-center gap-1 mt-1 font-display"
+            className="text-[10px] md:text-[11px] font-bold text-red-500 px-2 flex items-center gap-1 mt-1 font-display"
           >
             <span className="w-1 h-1 bg-red-500 rounded-full" />
             {error}
