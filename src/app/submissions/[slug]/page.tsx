@@ -6,6 +6,7 @@ import { formService } from "../../../services/form.service";
 import Button from "../../../components/common/Button";
 import { usePopup } from "../../../contexts/PopupContext";
 import { ArrowLeft, Edit2, Trash2, Loader2 } from "lucide-react";
+import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 
 type SubmissionRow = {
   _id: string;
@@ -13,7 +14,7 @@ type SubmissionRow = {
   createdAt?: string;
 };
 
-export default function SubmissionListPage() {
+function SubmissionListPageContent() {
   const { slug } = useParams();
   const router = useRouter();
   const [rows, setRows] = useState<SubmissionRow[]>([]);
@@ -228,5 +229,13 @@ export default function SubmissionListPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SubmissionListPage() {
+  return (
+    <ProtectedRoute>
+      <SubmissionListPageContent />
+    </ProtectedRoute>
   );
 }

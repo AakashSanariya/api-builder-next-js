@@ -9,8 +9,9 @@ import FieldRenderer from "../../../components/renderer/FieldRenderer";
 import Button from "../../../components/common/Button";
 import { Loader2, AlertCircle, CheckCircle2, Zap, ArrowRight, List } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 
-export default function PublicFormView() {
+function PublicFormViewContent() {
   const { slug } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -326,5 +327,13 @@ export default function PublicFormView() {
 
       </motion.div>
     </div>
+  );
+}
+
+export default function PublicFormView() {
+  return (
+    <ProtectedRoute>
+      <PublicFormViewContent />
+    </ProtectedRoute>
   );
 }

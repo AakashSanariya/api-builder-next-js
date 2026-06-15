@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   LayoutDashboard,
   Settings,
   BarChart3,
   Layers,
   Zap,
-  Github,
   HelpCircle,
   LogOut,
   PanelLeftClose,
@@ -34,6 +34,7 @@ const MainSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <aside className={`bg-white border-r h-full flex flex-col shrink-0 z-50 transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-[280px]'}`}>
@@ -109,31 +110,42 @@ const MainSidebar = () => {
         {!collapsed ? (
           <div className="bg-gray-50 rounded-[2rem] p-6 space-y-6">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white overflow-hidden shadow-sm shrink-0">
-                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Pro" alt="Avatar" />
+              <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white overflow-hidden shadow-sm shrink-0 flex items-center justify-center text-indigo-600 font-black text-lg">
+                {user ? user.firstName.charAt(0).toUpperCase() + user.lastName.charAt(0).toUpperCase() : "A"}
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-black text-gray-900 truncate">Admin Entity</h4>
+                <h4 className="text-xs font-black text-gray-900 truncate">
+                  {user ? `${user.firstName} ${user.lastName}` : "User"}
+                </h4>
+                <p className="text-[8px] text-gray-400 font-bold truncate">
+                  {user?.email || ""}
+                </p>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-200/50">
-              <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">
-                <Github size={18} />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">
-                <HelpCircle size={18} />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+              <button
+                onClick={() => logout()}
+                className="w-full p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all flex items-center justify-center gap-2"
+                title="Sign Out"
+              >
                 <LogOut size={18} />
+                <span className="text-[9px] font-black uppercase tracking-wider">Sign Out</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white overflow-hidden shadow-sm">
-              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Pro" alt="Avatar" />
+            <div className="w-10 h-10 rounded-full bg-indigo-100 border-2 border-white overflow-hidden shadow-sm flex items-center justify-center text-indigo-600 font-black text-lg">
+              {user ? user.firstName.charAt(0).toUpperCase() : "A"}
             </div>
+            <button
+              onClick={() => logout()}
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+              title="Sign Out"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         )}
 

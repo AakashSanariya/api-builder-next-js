@@ -11,11 +11,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Define routes that should NOT have the global sidebar
-  const isPublicRoute = pathname?.startsWith("/view");
+  const isAuthRoute = pathname?.startsWith("/login") || pathname?.startsWith("/signup");
   const isBuilderRoute = pathname?.startsWith("/builder");
   
   // Dashboard, API Docs, View, and other settings should show sidebar
-  const showSidebar = !isBuilderRoute && pathname !== "/";
+  const showSidebar = !isBuilderRoute && !isAuthRoute && pathname !== "/";
 
   if (!showSidebar) {
     return <>{children}</>;

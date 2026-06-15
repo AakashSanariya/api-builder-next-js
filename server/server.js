@@ -5,6 +5,7 @@ const cors = require("cors");
 const path = require("path");
 
 const formRoutes = require("./routes/form.routes");
+const authRoutes = require("./routes/auth.routes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,7 +15,10 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Single dedicated mount point for management and dynamic routes
+// Auth routes (unprotected)
+app.use("/auth", authRoutes);
+
+// Protected management and dynamic routes
 app.use("/", formRoutes);
 
 // Health check

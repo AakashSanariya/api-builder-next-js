@@ -7,8 +7,9 @@ import { formService } from "../../../services/form.service";
 import { FormModel } from "../../../types/form.types";
 import { Loader2, ArrowLeft, Copy, Check, Terminal, Globe, Code, Box, Info, Lock } from "lucide-react";
 import Button from "../../../components/common/Button";
+import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 
-export default function ApiDocsPage() {
+function ApiDocsPageContent() {
   const { formId } = useParams();
   const router = useRouter();
   const [form, setForm] = useState<FormModel | null>(null);
@@ -468,5 +469,13 @@ export default function ApiDocsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ApiDocsPage() {
+  return (
+    <ProtectedRoute>
+      <ApiDocsPageContent />
+    </ProtectedRoute>
   );
 }

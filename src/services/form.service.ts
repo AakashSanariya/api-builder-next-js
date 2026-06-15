@@ -1,6 +1,22 @@
 import { apiRequest } from "./api";
 import { FormModel, ApiResponse } from "../types/form.types";
-import { FieldSchema, SectionSchema } from "../types/field.types";
+import { SectionSchema } from "../types/field.types";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const authFetch = (url: string, options: RequestInit = {}) => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+  return fetch(url, { ...options, headers }).then((res) => res.json());
+};
 
 export const formService = {
   getAllForms: () => 
@@ -25,10 +41,10 @@ export const formService = {
     }),
 
   submitDynamicForm: (slug: string, data: FormData) => 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/${slug}`, {
+    authFetch(`${BASE_URL}/api/${slug}`, {
       method: "POST",
-      body: data, // Multer handles FormData
-    }).then(res => res.json()),
+      body: data,
+    }),
 
   getDynamicSubmissionById: (slug: string, recordId: string) =>
     apiRequest<ApiResponse<{ _id: string; data: Record<string, any> }>>(
@@ -41,22 +57,15 @@ export const formService = {
     ),
 
   updateDynamicSubmission: (slug: string, recordId: string, data: FormData) =>
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/${slug}/data/${recordId}`,
-      {
-        method: "PUT",
-        body: data,
-      }
-    ).then((res) => res.json()),
+    authFetch(`${BASE_URL}/api/${slug}/data/${recordId}`, {
+      method: "PUT",
+      body: data,
+    }),
 
   deleteDynamicSubmission: (slug: string, recordId: string) =>
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/${slug}/data/${recordId}`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      }
-    ).then((res) => res.json()),
+    authFetch(`${BASE_URL}/api/${slug}/data/${recordId}`, {
+      method: "DELETE",
+    }),
 
   deleteForm: (id: string) =>
     apiRequest<ApiResponse<any>>(`/${id}`, {

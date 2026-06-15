@@ -2,9 +2,13 @@ const express = require("express");
 const router = express.Router();
 const formController = require("../controllers/form.controller");
 const dynamicValidation = require("../middleware/validation.middleware");
-const upload = require("../middleware/upload"); // Pre-existing multer config
+const upload = require("../middleware/upload");
+const authenticate = require("../middleware/auth.middleware");
 
-// Dynamic API Core (Single Dynamic Endpoint)
+// All routes require authentication
+router.use(authenticate);
+
+// Dynamic API Core
 router.post("/api/:slug", upload.any(), dynamicValidation, formController.handleDynamicSubmission);
 router.get("/api/:slug/data", formController.listDynamicSubmissions);
 router.get("/api/:slug/data/:recordId", formController.getDynamicSubmission);

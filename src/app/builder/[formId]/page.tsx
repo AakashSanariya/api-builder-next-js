@@ -11,8 +11,9 @@ import FieldSettingsPanel from "../../../components/builder/FieldSettingsPanel";
 import { Loader2, ArrowLeft, Save, Rocket, Layout, Globe, PanelLeftClose, PanelLeftOpen, Settings2 } from "lucide-react";
 import Button from "../../../components/common/Button";
 import { usePopup } from "../../../contexts/PopupContext";
+import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 
-export default function BuilderPage() {
+function BuilderPageContent() {
   const { formId } = useParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -274,5 +275,13 @@ export default function BuilderPage() {
       {/* Decorative backdrop glow */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[150px] pointer-events-none z-0" />
     </div>
+  );
+}
+
+export default function BuilderPage() {
+  return (
+    <ProtectedRoute>
+      <BuilderPageContent />
+    </ProtectedRoute>
   );
 }

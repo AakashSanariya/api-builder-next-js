@@ -9,8 +9,9 @@ import { usePopup } from "../../contexts/PopupContext";
 import { Plus, Edit2, ExternalLink, Activity, Layout, Search, Layers, Box, Terminal, Globe, Loader2 } from "lucide-react";
 
 import Button from "../../components/common/Button";
+import ProtectedRoute from "../../components/auth/ProtectedRoute";
 
-export default function Dashboard() {
+function DashboardContent() {
   const [forms, setForms] = useState<FormModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -269,5 +270,13 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   );
 }
