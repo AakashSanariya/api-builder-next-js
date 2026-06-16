@@ -140,6 +140,9 @@ function ApiDocsPageContent() {
   const NL = '\n';
   const CONT = ' \\';
 
+  const authToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+  const AUTH_HEADER = authToken ? `-H "Authorization: Bearer ${authToken}"` : "-H \"Authorization: Bearer YOUR_AUTH_TOKEN\"";
+
   const flattenSampleForCurl = (obj: Record<string, any>) => {
     const flat: Record<string, string> = {};
     Object.values(obj).forEach(section => {
@@ -160,18 +163,18 @@ function ApiDocsPageContent() {
   const jsonBody = JSON.stringify(sampleRequest, null, 2);
 
   const curlPost = hasFileFields
-    ? ['curl -X POST ' + createEndpoint, buildFormFlags()].join(CONT + NL)
-    : ['curl -X POST ' + createEndpoint, '  -H "Content-Type: application/json"', "  -d '" + jsonBody + "'"].join(CONT + NL);
+    ? ['curl -X POST ' + createEndpoint, '  ' + AUTH_HEADER, buildFormFlags()].join(CONT + NL)
+    : ['curl -X POST ' + createEndpoint, '  ' + AUTH_HEADER, '  -H "Content-Type: application/json"', "  -d '" + jsonBody + "'"].join(CONT + NL);
 
-  const curlGetList = 'curl -X GET "' + listEndpoint + '"';
+  const curlGetList = ['curl -X GET "' + listEndpoint + '"', '  ' + AUTH_HEADER].join(CONT + NL);
 
-  const curlGetById = 'curl -X GET ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID';
+  const curlGetById = ['curl -X GET ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', '  ' + AUTH_HEADER].join(CONT + NL);
 
   const curlPut = hasFileFields
-    ? ['curl -X PUT ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', buildFormFlags()].join(CONT + NL)
-    : ['curl -X PUT ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', '  -H "Content-Type: application/json"', "  -d '" + jsonBody + "'"].join(CONT + NL);
+    ? ['curl -X PUT ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', '  ' + AUTH_HEADER, buildFormFlags()].join(CONT + NL)
+    : ['curl -X PUT ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', '  ' + AUTH_HEADER, '  -H "Content-Type: application/json"', "  -d '" + jsonBody + "'"].join(CONT + NL);
 
-  const curlDelete = 'curl -X DELETE ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID';
+  const curlDelete = ['curl -X DELETE ' + baseUrl + '/api/' + form.slug + '/data/RECORD_ID', '  ' + AUTH_HEADER].join(CONT + NL);
 
   const curlCommands = [
     { label: 'Create Submission', method: 'POST', methodClass: 'text-indigo-500 bg-indigo-50 border-indigo-100', curl: curlPost, key: 'curl-post' },
