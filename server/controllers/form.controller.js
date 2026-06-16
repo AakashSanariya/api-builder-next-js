@@ -17,6 +17,7 @@ const getDynamicDataModel = (slug) => {
       data: { type: mongoose.Schema.Types.Mixed, required: true },
       ip: { type: String },
       userAgent: { type: String },
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     },
     { timestamps: true, strict: false, collection: collectionName }
   );
@@ -27,7 +28,7 @@ const getDynamicDataModel = (slug) => {
 // GET /forms
 exports.getAllForms = async (req, res) => {
   try {
-    const forms = await Form.find().sort({ createdAt: -1 });
+    const forms = await Form.find({ userId: req.user.userId }).sort({ createdAt: -1 });
     res.json({ success: true, data: forms });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -40,13 +41,13 @@ exports.getFormById = async (req, res) => {
     const { id } = req.params;
     let form;
     
-    // Attempt to find by ID first, then by slug
+    // Attempt to find by ID first, then by slug (scoped to user)
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
-      form = await Form.findById(id);
+      form = await Form.findOne({ _id: id, userId: req.user.userId });
     }
     
     if (!form) {
-      form = await Form.findOne({ slug: id });
+      form = await Form.findOne({ slug: id, userId: req.user.userId });
     }
 
     if (!form) return res.status(404).json({ success: false, message: "Form not found" });
@@ -70,7 +71,8 @@ exports.createForm = async (req, res) => {
       name, 
       slug,
       fields: [],
-      published: false 
+      published: false,
+      userId: req.user.userId,
     });
     
     await newForm.save();
@@ -89,8 +91,8 @@ exports.updateFormSchema = async (req, res) => {
     if (sections) updateData.sections = sections;
     if (fields) updateData.fields = fields;
 
-    const form = await Form.findByIdAndUpdate(
-      req.params.id,
+    const form = await Form.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.userId },
       updateData,
       { new: true }
     );
@@ -148,6 +150,7 @@ exports.handleDynamicSubmission = async (req, res) => {
       data: structuredData,
       ip: req.ip,
       userAgent: req.headers["user-agent"],
+      userId: req.user.userId,
     });
 
     res.json({
@@ -161,7 +164,7 @@ exports.handleDynamicSubmission = async (req, res) => {
   }
 };
 
-// GET /api/:slug/data/:recordId (Fetch one submitted record for prefill/edit)
+// GET /api/:slug/data (List submitted records scoped to user)
 exports.listDynamicSubmissions = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -175,9 +178,10 @@ exports.listDynamicSubmissions = async (req, res) => {
     }
 
     const DynamicData = getDynamicDataModel(slug);
+    const filter = { formSlug: slug, userId: req.user.userId };
     const [rows, total] = await Promise.all([
-      DynamicData.find({ formSlug: slug }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      DynamicData.countDocuments({ formSlug: slug }),
+      DynamicData.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      DynamicData.countDocuments(filter),
     ]);
 
     res.json({
@@ -190,7 +194,7 @@ exports.listDynamicSubmissions = async (req, res) => {
   }
 };
 
-// GET /api/:slug/data/:recordId (Fetch one submitted record for prefill/edit)
+// GET /api/:slug/data/:recordId (Fetch one submitted record scoped to user)
 exports.getDynamicSubmission = async (req, res) => {
   try {
     const { slug, recordId } = req.params;
@@ -201,7 +205,7 @@ exports.getDynamicSubmission = async (req, res) => {
     }
 
     const DynamicData = getDynamicDataModel(slug);
-    const record = await DynamicData.findById(recordId).lean();
+    const record = await DynamicData.findOne({ _id: recordId, userId: req.user.userId }).lean();
 
     if (!record) {
       return res.status(404).json({ success: false, message: "Submitted data not found" });
@@ -224,7 +228,7 @@ exports.updateDynamicSubmission = async (req, res) => {
     const structuredData = groupDataBySection(dynamicForm.sections, validatedData);
 
     const updatedRecord = await DynamicData.findOneAndUpdate(
-      { _id: recordId, formSlug: dynamicForm.slug, formId: dynamicForm._id },
+      { _id: recordId, formSlug: dynamicForm.slug, formId: dynamicForm._id, userId: req.user.userId },
       {
         data: structuredData,
         ip: req.ip,
@@ -262,6 +266,7 @@ exports.deleteDynamicSubmission = async (req, res) => {
     const deletedRecord = await DynamicData.findOneAndDelete({
       _id: recordId,
       formSlug: slug,
+      userId: req.user.userId,
     });
 
     if (!deletedRecord) {
@@ -281,7 +286,7 @@ exports.deleteDynamicSubmission = async (req, res) => {
 exports.deleteForm = async (req, res) => {
   try {
     const { id } = req.params;
-    const form = await Form.findById(id);
+    const form = await Form.findOne({ _id: id, userId: req.user.userId });
 
     if (!form) {
       return res.status(404).json({ success: false, message: "Form not found" });
@@ -310,8 +315,8 @@ exports.deleteForm = async (req, res) => {
       mongoose.deleteModel(modelName);
     }
 
-    // 3. Delete the form schema record
-    await Form.findByIdAndDelete(id);
+    // 3. Delete the form schema record (scoped to user)
+    await Form.findOneAndDelete({ _id: id, userId: req.user.userId });
 
     res.json({
       success: true,

@@ -41,6 +41,7 @@ const FormSchema = new mongoose.Schema(
     fields: [FieldSchema],
     sections: [SectionSchema],
     published: { type: Boolean, default: false },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   },
   { timestamps: true }
 );
