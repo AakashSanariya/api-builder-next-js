@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { formService } from "../../../services/form.service";
 import { FormModel } from "../../../types/form.types";
-import { Loader2, ArrowLeft, Copy, Check, Terminal, Globe, Code, Box, Info, Lock } from "lucide-react";
+import { Loader2, ArrowLeft, Copy, Check, Terminal, Globe, Code, Box, Info, Lock, Braces, FileJson, BookOpen } from "lucide-react";
 import Button from "../../../components/common/Button";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 
@@ -15,6 +15,9 @@ function ApiDocsPageContent() {
   const [form, setForm] = useState<FormModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [apiType, setApiType] = useState<"rest" | "graphql">("rest");
+  const [gqlResults, setGqlResults] = useState<Record<string, { loading: boolean; data?: any; error?: string }>>({});
+  const [gqlVariables, setGqlVariables] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -42,6 +45,41 @@ function ApiDocsPageContent() {
 
   const isCopied = (key: string) => copiedKey === key;
 
+  const runGraphQL = async (key: string, query: string) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+    if (!token) {
+      setGqlResults(prev => ({ ...prev, [key]: { loading: false, error: "Not authenticated. Please log in." } }));
+      return;
+    }
+
+    setGqlResults(prev => ({ ...prev, [key]: { loading: true } }));
+
+    try {
+      const res = await fetch(graphqlEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json();
+      setGqlResults(prev => ({
+        ...prev,
+        [key]: {
+          loading: false,
+          data,
+          error: data.errors ? data.errors.map((e: any) => e.message).join(", ") : undefined,
+        },
+      }));
+    } catch (err: any) {
+      setGqlResults(prev => ({
+        ...prev,
+        [key]: { loading: false, error: err.message || "Request failed" },
+      }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-white">
@@ -53,6 +91,7 @@ function ApiDocsPageContent() {
   if (!form) return null;
 
   const baseUrl = "http://localhost:5000";
+  const graphqlEndpoint = `${baseUrl}/graphql`;
   const createEndpoint = `${baseUrl}/api/${form.slug}`;
   const listEndpoint = `${baseUrl}/api/${form.slug}/data?page=1&limit=20`;
   const byIdEndpoint = `${baseUrl}/api/${form.slug}/data/:recordId`;
@@ -71,7 +110,6 @@ function ApiDocsPageContent() {
   const buildsSampleRequest = () => {
     const request: Record<string, any> = {};
     
-    // Normalize sections
     const sections = [...(form.sections || [])];
     if (sections.length === 0 && form.fields && form.fields.length > 0) {
       sections.push({ id: 'default', title: 'Default', fields: form.fields });
@@ -131,17 +169,16 @@ function ApiDocsPageContent() {
     timestamp: new Date().toISOString(),
   };
 
-  // Check if any field is a file type
   const hasFileFields = (form.sections || []).length > 0
     ? form.sections!.some(s => s.fields.some(f => f.type === 'file'))
     : (form.fields || []).some(f => f.type === 'file');
 
-  // Build cURL commands
   const NL = '\n';
   const CONT = ' \\';
 
   const authToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
   const AUTH_HEADER = authToken ? `-H "Authorization: Bearer ${authToken}"` : "-H \"Authorization: Bearer YOUR_AUTH_TOKEN\"";
+  const JSON_AUTH_HEADER = authToken ? `"Authorization": "Bearer ${authToken}"` : `"Authorization": "Bearer YOUR_AUTH_TOKEN"`;
 
   const flattenSampleForCurl = (obj: Record<string, any>) => {
     const flat: Record<string, string> = {};
@@ -184,9 +221,133 @@ function ApiDocsPageContent() {
     { label: 'Delete Record', method: 'DELETE', methodClass: 'text-red-500 bg-red-50 border-red-100', curl: curlDelete, key: 'curl-delete' },
   ];
 
+  const flatData = flattenSampleForCurl(sampleRequest);
+  const sampleJsonData = Object.keys(flatData).length > 0 ? flatData : { field_name: "Sample value" };
+
+  const graphqlQueries = [
+    {
+      label: 'Create Submission',
+      op: 'mutation',
+      graphql: `mutation CreateSubmission {\n  createSubmission(slug: "${form.slug}", data: ${JSON.stringify(sampleJsonData, null, 4)}) {\n    success\n    message\n    data {\n      _id\n      data\n    }\n    timestamp\n  }\n}`,
+      key: 'gql-create',
+      methodClass: 'text-indigo-500 bg-indigo-50 border-indigo-100',
+    },
+    {
+      label: 'List All Records',
+      op: 'query',
+      graphql: `query ListSubmissions {\n  submissions(slug: "${form.slug}", page: 1, limit: 20) {\n    records {\n      _id\n      data\n      createdAt\n    }\n    pagination {\n      page\n      limit\n      total\n      pages\n    }\n  }\n}`,
+      key: 'gql-list',
+      methodClass: 'text-emerald-500 bg-emerald-50 border-emerald-100',
+    },
+    {
+      label: 'Get Single Record',
+      op: 'query',
+      graphql: `query GetSubmission {\n  submission(slug: "${form.slug}", recordId: "RECORD_ID") {\n    _id\n    data\n    createdAt\n    updatedAt\n  }\n}`,
+      key: 'gql-get',
+      methodClass: 'text-cyan-500 bg-cyan-50 border-cyan-100',
+    },
+    {
+      label: 'Update Record',
+      op: 'mutation',
+      graphql: `mutation UpdateSubmission {\n  updateSubmission(slug: "${form.slug}", recordId: "RECORD_ID", data: ${JSON.stringify(sampleJsonData, null, 4)}) {\n    success\n    message\n    data {\n      _id\n      data\n    }\n    timestamp\n  }\n}`,
+      key: 'gql-update',
+      methodClass: 'text-amber-500 bg-amber-50 border-amber-100',
+    },
+    {
+      label: 'Delete Record',
+      op: 'mutation',
+      graphql: `mutation DeleteSubmission {\n  deleteSubmission(slug: "${form.slug}", recordId: "RECORD_ID") {\n    success\n    message\n  }\n}`,
+      key: 'gql-delete',
+      methodClass: 'text-red-500 bg-red-50 border-red-100',
+    },
+  ];
+
+  const authTokenJson = authToken ? authToken : "YOUR_AUTH_TOKEN";
+
+  const fetchExample = (query: string) => `fetch("${graphqlEndpoint}", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer ${authTokenJson}"
+  },
+  body: JSON.stringify({
+    query: \`${query.replace(/"/g, '\\"')}\`
+  })
+})`;
+
+  const codeExamples = [
+    {
+      label: 'List Forms',
+      code: `query {
+  forms {
+    _id
+    name
+    slug
+    published
+  }
+}`,
+      key: 'code-forms',
+    },
+    {
+      label: 'Form Management (Create)',
+      code: `mutation {
+  createForm(name: "New Form") {
+    _id
+    name
+    slug
+  }
+}`,
+      key: 'code-create-form',
+    },
+    {
+      label: 'Current User',
+      code: `query {
+  me {
+    firstName
+    lastName
+    email
+  }
+}`,
+      key: 'code-me',
+    },
+  ];
+
+  const TabButton = ({ type, label, icon }: { type: "rest" | "graphql"; label: string; icon: React.ReactNode }) => (
+    <button
+      onClick={() => setApiType(type)}
+      className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 ${
+        apiType === type
+          ? "bg-indigo-600 text-white shadow-xl shadow-indigo-200"
+          : "bg-white text-gray-400 hover:text-gray-700 border border-gray-100 hover:border-gray-200"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
+  const CodeBlock = ({ code, label, blockKey: blockKey }: { code: string; label?: string; blockKey: string }) => (
+    <div className="group">
+      {label && (
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-bold text-gray-700 truncate">{label}</span>
+        </div>
+      )}
+      <div className="relative">
+        <pre className="bg-gray-950 text-gray-300 p-4 md:p-6 pr-12 md:pr-16 rounded-xl md:rounded-2xl font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-all shadow-xl">{code}</pre>
+        <button
+          onClick={() => copyToClipboard(code, blockKey)}
+          className="absolute top-3 md:top-4 right-3 md:right-4 p-2 md:p-3 bg-white/5 hover:bg-white/15 rounded-lg md:rounded-xl transition-all text-gray-500 hover:text-white border border-white/10"
+          title="Copy to clipboard"
+        >
+          {isCopied(blockKey) ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} className="" />}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#FDFEFE] py-8 md:py-16 px-4 md:px-8 relative overflow-hidden">
-      {/* Decorative background gradients */}
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-50/50 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-50/50 rounded-full blur-[120px] pointer-events-none" />
 
@@ -199,7 +360,7 @@ function ApiDocsPageContent() {
             </Button>
         </motion.div>
 
-        <header className="mb-10 md:mb-16">
+        <header className="mb-6 md:mb-8">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
              <div className="w-10 h-10 md:w-14 md:h-14 bg-indigo-600 rounded-xl md:rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
                 <Terminal size={20} className="md:hidden" />
@@ -210,13 +371,18 @@ function ApiDocsPageContent() {
                 <p className="text-gray-400 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.2em] mt-0.5 md:mt-1 truncate">Integration interface for {form.name}</p>
              </div>
           </motion.div>
+
+          {/* API Type Toggle */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+            <TabButton type="rest" label="REST API" icon={<Globe size={14} />} />
+            <TabButton type="graphql" label="GraphQL" icon={<Braces size={14} />} />
+          </motion.div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
-            {/* Left: Documentation Detail */}
+        {apiType === "rest" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
             <div className="lg:col-span-12 space-y-6 md:space-y-12">
                 
-                {/* Endpoint Section */}
                 <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)] relative overflow-hidden">
                     <div className="flex items-center gap-3 mb-6 md:mb-8">
                        <div className="p-2 md:p-3 bg-blue-50 text-blue-600 rounded-xl md:rounded-2xl shrink-0">
@@ -227,70 +393,26 @@ function ApiDocsPageContent() {
                     </div>
 
                     <div className="space-y-3 md:space-y-4">
-                      <div className="relative group">
-                          <div className="flex items-center gap-2 md:gap-4 bg-gray-950 text-white p-4 md:p-6 rounded-xl md:rounded-[2rem] font-mono text-xs md:text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
-                              <span className="text-indigo-400 font-black px-2 md:px-3 py-0.5 md:py-1 bg-indigo-400/10 rounded-md md:rounded-lg text-[9px] md:text-xs shrink-0">POST</span>
-                              <span className="flex-1 truncate tracking-tight text-gray-300 min-w-0">{createEndpoint}</span>
-                              <button
-                                  onClick={() => copyToClipboard(createEndpoint, 'ep-post')}
-                                  className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 hover:text-white shrink-0"
-                              >
-                                  {isCopied('ep-post') ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="" />}
-                              </button>
-                          </div>
-                      </div>
-
-                      <div className="relative group">
-                          <div className="flex items-center gap-2 md:gap-4 bg-gray-950 text-white p-4 md:p-6 rounded-xl md:rounded-[2rem] font-mono text-xs md:text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
-                              <span className="text-emerald-400 font-black px-2 md:px-3 py-0.5 md:py-1 bg-emerald-400/10 rounded-md md:rounded-lg text-[9px] md:text-xs shrink-0">GET</span>
-                              <span className="flex-1 truncate tracking-tight text-gray-300 min-w-0">{listEndpoint}</span>
-                              <button
-                                  onClick={() => copyToClipboard(listEndpoint, 'ep-get-list')}
-                                  className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 hover:text-white shrink-0"
-                              >
-                                  {isCopied('ep-get-list') ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="" />}
-                              </button>
-                          </div>
-                      </div>
-
-                      <div className="relative group">
-                          <div className="flex items-center gap-2 md:gap-4 bg-gray-950 text-white p-4 md:p-6 rounded-xl md:rounded-[2rem] font-mono text-xs md:text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
-                              <span className="text-cyan-400 font-black px-2 md:px-3 py-0.5 md:py-1 bg-cyan-400/10 rounded-md md:rounded-lg text-[9px] md:text-xs shrink-0">GET</span>
-                              <span className="flex-1 truncate tracking-tight text-gray-300 min-w-0">{byIdEndpoint}</span>
-                              <button
-                                  onClick={() => copyToClipboard(byIdEndpoint, 'ep-get-id')}
-                                  className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 hover:text-white shrink-0"
-                              >
-                                  {isCopied('ep-get-id') ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="" />}
-                              </button>
-                          </div>
-                      </div>
-
-                      <div className="relative group">
-                          <div className="flex items-center gap-2 md:gap-4 bg-gray-950 text-white p-4 md:p-6 rounded-xl md:rounded-[2rem] font-mono text-xs md:text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
-                              <span className="text-amber-400 font-black px-2 md:px-3 py-0.5 md:py-1 bg-amber-400/10 rounded-md md:rounded-lg text-[9px] md:text-xs shrink-0">PUT</span>
-                              <span className="flex-1 truncate tracking-tight text-gray-300 min-w-0">{byIdEndpoint}</span>
-                              <button
-                                  onClick={() => copyToClipboard(byIdEndpoint, 'ep-put')}
-                                  className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 hover:text-white shrink-0"
-                              >
-                                  {isCopied('ep-put') ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="" />}
-                              </button>
-                          </div>
-                      </div>
-
-                      <div className="relative group">
-                          <div className="flex items-center gap-2 md:gap-4 bg-gray-950 text-white p-4 md:p-6 rounded-xl md:rounded-[2rem] font-mono text-xs md:text-sm overflow-hidden shadow-2xl group-hover:shadow-red-200 transition-shadow">
-                              <span className="text-red-400 font-black px-2 md:px-3 py-0.5 md:py-1 bg-red-400/10 rounded-md md:rounded-lg text-[9px] md:text-xs shrink-0">DELETE</span>
-                              <span className="flex-1 truncate tracking-tight text-gray-300 min-w-0">{deleteEndpoint}</span>
-                              <button
-                                  onClick={() => copyToClipboard(deleteEndpoint, 'ep-delete')}
-                                  className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 hover:text-white shrink-0"
-                              >
-                                  {isCopied('ep-delete') ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="" />}
-                              </button>
-                          </div>
-                      </div>
+                      {[
+                        { method: 'POST', classes: 'text-indigo-400 bg-indigo-400/10', endpoint: createEndpoint, key: 'ep-post' },
+                        { method: 'GET', classes: 'text-emerald-400 bg-emerald-400/10', endpoint: listEndpoint, key: 'ep-get-list' },
+                        { method: 'GET', classes: 'text-cyan-400 bg-cyan-400/10', endpoint: byIdEndpoint, key: 'ep-get-id' },
+                        { method: 'PUT', classes: 'text-amber-400 bg-amber-400/10', endpoint: byIdEndpoint, key: 'ep-put' },
+                        { method: 'DELETE', classes: 'text-red-400 bg-red-400/10', endpoint: deleteEndpoint, key: 'ep-delete' },
+                      ].map(ep => (
+                        <div key={ep.key} className="relative group">
+                            <div className="flex items-center gap-2 md:gap-4 bg-gray-950 text-white p-4 md:p-6 rounded-xl md:rounded-[2rem] font-mono text-xs md:text-sm overflow-hidden shadow-2xl group-hover:shadow-indigo-200 transition-shadow">
+                                <span className={`font-black px-2 md:px-3 py-0.5 md:py-1 rounded-md md:rounded-lg text-[9px] md:text-xs shrink-0 ${ep.classes}`}>{ep.method}</span>
+                                <span className="flex-1 truncate tracking-tight text-gray-300 min-w-0">{ep.endpoint}</span>
+                                <button
+                                    onClick={() => copyToClipboard(ep.endpoint, ep.key)}
+                                    className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 hover:text-white shrink-0"
+                                >
+                                    {isCopied(ep.key) ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="" />}
+                                </button>
+                            </div>
+                        </div>
+                      ))}
                     </div>
 
                     {!form.published && (
@@ -303,7 +425,6 @@ function ApiDocsPageContent() {
                     )}
                 </motion.section>
 
-                {/* cURL Commands Section */}
                 <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
                     <div className="flex items-center gap-3 mb-6 md:mb-8">
                        <div className="p-2 md:p-3 bg-gray-900 text-white rounded-xl md:rounded-2xl shrink-0">
@@ -311,8 +432,8 @@ function ApiDocsPageContent() {
                           <Terminal size={20} className="hidden md:block" />
                        </div>
                        <div className="min-w-0">
-                         <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">cURL Commands</h2>
-                         <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">Ready to paste into terminal or import into Postman</p>
+                          <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">cURL Commands</h2>
+                          <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">Ready to paste into terminal or import into Postman</p>
                        </div>
                     </div>
 
@@ -340,17 +461,13 @@ function ApiDocsPageContent() {
                     <div className="mt-6 md:mt-8 p-3 md:p-4 bg-blue-50/50 rounded-xl md:rounded-2xl border border-blue-100 flex items-start gap-2 md:gap-3">
                         <Info size={14} className="text-blue-500 shrink-0 mt-0.5" />
                         <p className="text-[9px] md:text-[10px] text-blue-700 font-bold uppercase tracking-tight leading-relaxed">
-                            Replace <span className="text-blue-900 font-mono">RECORD_ID</span> with an actual record ID from your submissions. You can import cURL commands directly into <span className="text-blue-900">Postman</span> via File → Import.
+                            Replace <span className="text-blue-900 font-mono">RECORD_ID</span> with an actual record ID from your submissions.
                         </p>
                     </div>
                 </motion.section>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                    {/* Request Payload Section */}
-                    <motion.section 
-                        initial={{ opacity: 0, y: 20 }} 
-                        animate={{ opacity: 1, y: 0 }} 
-                        transition={{ delay: 0.1 }}
+                    <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                         className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
                     >
                         <div className="flex items-center gap-3 mb-6 md:mb-8">
@@ -376,11 +493,7 @@ function ApiDocsPageContent() {
                         </div>
                     </motion.section>
 
-                    {/* Response Section */}
-                    <motion.section 
-                        initial={{ opacity: 0, y: 20 }} 
-                        animate={{ opacity: 1, y: 0 }} 
-                        transition={{ delay: 0.2 }}
+                    <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                         className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
                     >
                         <div className="flex items-center gap-3 mb-6 md:mb-8">
@@ -401,10 +514,7 @@ function ApiDocsPageContent() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                    <motion.section
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
+                    <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                         className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
                     >
                         <div className="flex items-center gap-3 mb-6 md:mb-8">
@@ -419,10 +529,7 @@ function ApiDocsPageContent() {
                         </pre>
                     </motion.section>
 
-                    <motion.section
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35 }}
+                    <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
                         className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
                     >
                         <div className="flex items-center gap-3 mb-6 md:mb-8">
@@ -438,17 +545,14 @@ function ApiDocsPageContent() {
                         <div className="mt-4 md:mt-6 p-3 md:p-4 bg-red-50/50 rounded-xl md:rounded-2xl border border-red-100 flex items-start gap-2 md:gap-3">
                             <Info size={14} className="text-red-500 shrink-0 mt-0.5" />
                             <p className="text-[9px] md:text-[10px] text-red-700 font-bold uppercase tracking-tight leading-relaxed">
-                                This action is <span className="text-red-900">irreversible</span>. The record will be permanently removed from the database.
+                                This action is <span className="text-red-900">irreversible</span>.
                             </p>
                         </div>
                     </motion.section>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                    <motion.section
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
+                    <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
                         className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
                     >
                         <div className="flex items-center gap-3 mb-6 md:mb-8">
@@ -469,7 +573,256 @@ function ApiDocsPageContent() {
                 </div>
 
             </div>
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
+            <div className="lg:col-span-12 space-y-6 md:space-y-12">
+
+              {/* GraphQL Endpoint */}
+              <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                  <div className="flex items-center gap-3 mb-6 md:mb-8">
+                     <div className="p-2 md:p-3 bg-purple-50 text-purple-600 rounded-xl md:rounded-2xl shrink-0">
+                        <Braces size={16} className="md:hidden" />
+                        <Braces size={20} className="hidden md:block" />
+                     </div>
+                     <div className="min-w-0">
+                        <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">GraphQL Endpoint</h2>
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">Single endpoint for all operations</p>
+                     </div>
+                  </div>
+
+                  <div className="relative group">
+                      <div className="flex items-center gap-2 md:gap-4 bg-gray-950 text-white p-4 md:p-6 rounded-xl md:rounded-[2rem] font-mono text-xs md:text-sm overflow-hidden shadow-2xl">
+                          <span className="text-purple-400 font-black px-2 md:px-3 py-0.5 md:py-1 bg-purple-400/10 rounded-md md:rounded-lg text-[9px] md:text-xs shrink-0">POST</span>
+                          <span className="flex-1 truncate tracking-tight text-gray-300 min-w-0">{graphqlEndpoint}</span>
+                          <button
+                              onClick={() => copyToClipboard(graphqlEndpoint, 'gql-ep')}
+                              className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 hover:text-white shrink-0"
+                          >
+                              {isCopied('gql-ep') ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="" />}
+                          </button>
+                      </div>
+                  </div>
+
+                  <p className="mt-4 md:mt-6 text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wide">
+                    Open <span className="font-mono text-purple-600">{graphqlEndpoint}</span> in your browser for the interactive Apollo Sandbox playground.
+                  </p>
+
+                  {/* Sandbox Headers Section */}
+                  <div className="mt-4 md:mt-6 p-4 md:p-5 bg-purple-50/50 rounded-xl md:rounded-[1.5rem] border border-purple-100">
+                    <div className="flex items-start gap-3 mb-3">
+                      <Info size={14} className="text-purple-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[9px] md:text-[10px] text-purple-800 font-black uppercase tracking-wider leading-relaxed mb-2">
+                          Apollo Sandbox — Set HTTP Headers
+                        </p>
+                        <ol className="text-[9px] md:text-[10px] text-purple-700 font-bold tracking-wide leading-relaxed space-y-1 ml-2">
+                          <li>1. Open <span className="font-mono text-purple-900">{graphqlEndpoint}</span> in your browser</li>
+                          <li>2. Click the <span className="font-mono text-purple-900">Headers</span> tab (bottom-left panel)</li>
+                          <li>3. Paste the header JSON below</li>
+                        </ol>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <pre className="bg-white p-3 rounded-xl border border-purple-200 text-[10px] text-purple-900 font-mono leading-relaxed">
+{`{
+  "Authorization": "Bearer ${authTokenJson}"
+}`}
+                      </pre>
+                      <button
+                        onClick={() => copyToClipboard(`{\n  "Authorization": "Bearer ${authTokenJson}"\n}`, 'gql-headers')}
+                        className="absolute top-2 right-2 p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-all text-purple-600"
+                        title="Copy headers"
+                      >
+                        {isCopied('gql-headers') ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} className="" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 md:mt-6 p-2 md:p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
+                    <span className="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-wide">cURL</span>
+                    <button
+                      onClick={() => copyToClipboard(`curl -X POST ${graphqlEndpoint} \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer ${authTokenJson}" \\\n  -d '{ "query": "{ forms { name slug } }" }'`, 'gql-curl')}
+                      className="text-[9px] md:text-[10px] text-indigo-600 font-black uppercase tracking-wider hover:text-indigo-800 transition-colors flex items-center gap-1"
+                    >
+                      {isCopied('gql-curl') ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy cURL</>}
+                    </button>
+                  </div>
+
+                  {!form.published && (
+                  <div className="mt-4 md:mt-6 p-4 md:p-5 bg-amber-50 rounded-xl md:rounded-[1.5rem] border border-amber-100 flex items-start gap-3">
+                      <Lock size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-[9px] md:text-[11px] text-amber-800 font-black uppercase tracking-wider leading-relaxed italic">
+                          Status: <span className="text-amber-600">Restricted</span>. Publish the form in the builder to enable mutations on this schema.
+                      </p>
+                  </div>
+                  )}
+              </motion.section>
+
+              {/* Form Management Queries */}
+              <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                  <div className="flex items-center gap-3 mb-6 md:mb-8">
+                     <div className="p-2 md:p-3 bg-blue-50 text-blue-600 rounded-xl md:rounded-2xl shrink-0">
+                        <BookOpen size={16} className="md:hidden" />
+                        <BookOpen size={20} className="hidden md:block" />
+                     </div>
+                     <div className="min-w-0">
+                        <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">Utility Queries</h2>
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">Auth & Form management</p>
+                     </div>
+                  </div>
+
+                  <div className="space-y-4 md:space-y-6">
+                    {codeExamples.map((ex) => {
+                      const result = gqlResults[ex.key];
+                      return (
+                      <div key={ex.key} className="group">
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+                          <span className="text-xs md:text-sm font-bold text-gray-700 truncate">{ex.label}</span>
+                        </div>
+                        <div className="relative">
+                          <pre className="bg-gray-950 text-gray-300 p-4 md:p-6 pr-16 md:pr-20 rounded-xl md:rounded-2xl font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-all shadow-xl">{ex.code}</pre>
+                          <div className="absolute top-3 md:top-4 right-3 md:right-4 flex gap-2">
+                            <button
+                              onClick={() => runGraphQL(ex.key, ex.code)}
+                              disabled={result?.loading}
+                              className="p-2 md:p-3 bg-indigo-500/80 hover:bg-indigo-500 rounded-lg md:rounded-xl transition-all text-white border border-indigo-400/30 disabled:opacity-50"
+                              title="Run query"
+                            >
+                              {result?.loading ? <Loader2 size={14} className="animate-spin" /> : <Terminal size={14} />}
+                            </button>
+                            <button
+                              onClick={() => copyToClipboard(ex.code, ex.key)}
+                              className="p-2 md:p-3 bg-white/5 hover:bg-white/15 rounded-lg md:rounded-xl transition-all text-gray-500 hover:text-white border border-white/10"
+                              title="Copy to clipboard"
+                            >
+                              {isCopied(ex.key) ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} className="" />}
+                            </button>
+                          </div>
+                        </div>
+                        {result?.loading && (
+                          <div className="mt-2 p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-2">
+                            <Loader2 size={14} className="animate-spin text-indigo-500" />
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Executing...</span>
+                          </div>
+                        )}
+                        {result?.error && (
+                          <div className="mt-2 p-3 bg-red-50 rounded-xl border border-red-100">
+                            <pre className="text-[10px] text-red-700 font-mono whitespace-pre-wrap">{result.error}</pre>
+                          </div>
+                        )}
+                        {result?.data && !result.error && (
+                          <div className="mt-2">
+                            <pre className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-[10px] text-emerald-800 font-mono overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto">
+                              {JSON.stringify(result.data, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                      );
+                    })}
+                  </div>
+              </motion.section>
+
+              {/* Dynamic Submission Operations */}
+              <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                  <div className="flex items-center gap-3 mb-6 md:mb-8">
+                     <div className="p-2 md:p-3 bg-gray-900 text-white rounded-xl md:rounded-2xl shrink-0">
+                        <Terminal size={16} className="md:hidden" />
+                        <Terminal size={20} className="hidden md:block" />
+                     </div>
+                     <div className="min-w-0">
+                        <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">Submission Operations</h2>
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">CRUD for {form.name} records</p>
+                     </div>
+                  </div>
+
+                  <div className="space-y-4 md:space-y-6">
+                    {graphqlQueries.map((q) => {
+                      const result = gqlResults[q.key];
+                      return (
+                      <div key={q.key} className="group">
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+                          <span className={`font-black text-[8px] md:text-[10px] uppercase tracking-widest px-2 md:px-3 py-0.5 md:py-1 rounded-md md:rounded-lg border ${q.methodClass}`}>{q.op}</span>
+                          <span className="text-xs md:text-sm font-bold text-gray-700 truncate">{q.label}</span>
+                        </div>
+                        <div className="relative">
+                          <pre className="bg-gray-950 text-gray-300 p-4 md:p-6 pr-12 md:pr-16 rounded-xl md:rounded-2xl font-mono text-[10px] md:text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-all shadow-xl">{q.graphql}</pre>
+                          <div className="absolute top-3 md:top-4 right-3 md:right-4 flex gap-2">
+                            <button
+                              onClick={() => {
+                                const substituted = q.graphql.replace(/RECORD_ID/g, gqlVariables[q.key] || "RECORD_ID");
+                                runGraphQL(q.key, substituted);
+                              }}
+                              disabled={result?.loading}
+                              className="p-2 md:p-3 bg-indigo-500/80 hover:bg-indigo-500 rounded-lg md:rounded-xl transition-all text-white border border-indigo-400/30 disabled:opacity-50"
+                              title="Run query"
+                            >
+                              {result?.loading ? <Loader2 size={14} className="animate-spin" /> : <Terminal size={14} />}
+                            </button>
+                            <button
+                              onClick={() => copyToClipboard(q.graphql, q.key)}
+                              className="p-2 md:p-3 bg-white/5 hover:bg-white/15 rounded-lg md:rounded-xl transition-all text-gray-500 hover:text-white border border-white/10"
+                              title="Copy to clipboard"
+                            >
+                              {isCopied(q.key) ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} className="" />}
+                            </button>
+                          </div>
+                        </div>
+                        {result?.loading && (
+                          <div className="mt-2 p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-2">
+                            <Loader2 size={14} className="animate-spin text-indigo-500" />
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Executing...</span>
+                          </div>
+                        )}
+                        {result?.error && (
+                          <div className="mt-2 p-3 bg-red-50 rounded-xl border border-red-100">
+                            <pre className="text-[10px] text-red-700 font-mono whitespace-pre-wrap">{result.error}</pre>
+                          </div>
+                        )}
+                        {result?.data && !result.error && (
+                          <div className="mt-2">
+                            <pre className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-[10px] text-emerald-800 font-mono overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto">
+                              {JSON.stringify(result.data, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                      );
+                    })}
+                  </div>
+              </motion.section>
+
+              {/* GraphQL Fetch Example */}
+              <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                  <div className="flex items-center gap-3 mb-6 md:mb-8">
+                     <div className="p-2 md:p-3 bg-indigo-50 text-indigo-600 rounded-xl md:rounded-2xl shrink-0">
+                        <FileJson size={16} className="md:hidden" />
+                        <FileJson size={20} className="hidden md:block" />
+                     </div>
+                     <div className="min-w-0">
+                        <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">Client Example (fetch)</h2>
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">JavaScript / TypeScript snippet</p>
+                     </div>
+                  </div>
+
+                  <div className="space-y-4 md:space-y-6">
+                    {graphqlQueries.slice(0, 2).map((q) => (
+                      <CodeBlock key={`fetch-${q.key}`} code={`const query = \`\n${q.graphql}\n\`;\n\nconst response = await fetch("${graphqlEndpoint}", {\n  method: "POST",\n  headers: {\n    "Content-Type": "application/json",\n    "Authorization": "Bearer ${authTokenJson}"\n  },\n  body: JSON.stringify({ query })\n});\n\nconst result = await response.json();\nconsole.log(result);`} label={q.label} blockKey={`fetch-${q.key}`} />
+                    ))}
+                  </div>
+
+                  <div className="mt-6 md:mt-8 p-3 md:p-4 bg-blue-50/50 rounded-xl md:rounded-2xl border border-blue-100 flex items-start gap-2 md:gap-3">
+                      <Info size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                      <p className="text-[9px] md:text-[10px] text-blue-700 font-bold uppercase tracking-tight leading-relaxed">
+                          For file uploads, use <span className="text-blue-900 font-mono">multipart/form-data</span> with the GraphQL multipart request spec, or upload files via REST first and pass URLs in the <span className="text-blue-900 font-mono">data</span> argument.
+                      </p>
+                  </div>
+              </motion.section>
+
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
