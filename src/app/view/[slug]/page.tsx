@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { formService } from "../../../services/form.service";
-import { FormModel } from "../../../types/form.types";
 import { FieldSchema } from "../../../types/field.types";
 import FieldRenderer from "../../../components/renderer/FieldRenderer";
 import Button from "../../../components/common/Button";
@@ -15,7 +14,7 @@ function PublicFormViewContent() {
   const { slug } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [form, setForm] = useState<FormModel | null>(null);
+  const [form, setForm] = useState<any>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -38,16 +37,10 @@ function PublicFormViewContent() {
 
   const flattenSubmissionData = (data: Record<string, any>) => {
     if (!data) return {};
-    
-    // Check if the data is already flat or nested by section 
-    // If nested, keys will likely be 'section_...' or 'default'
-    // We can check if any value is an object (excluding null, Array, and File)
-    const isNested = Object.values(data).some(v => 
+    const isNested = Object.values(data).some(v =>
       v !== null && typeof v === 'object' && !Array.isArray(v) && !(v instanceof File)
     );
-
     if (!isNested) return data;
-
     const flat: Record<string, any> = {};
     Object.values(data).forEach(sectionValues => {
       if (typeof sectionValues === 'object' && sectionValues !== null) {
@@ -60,22 +53,23 @@ function PublicFormViewContent() {
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        const res = await formService.getFormBySlug(slug as string);
-        if (res.success && res.data) {
-          const formRes = res.data;
-          // Normalize to sections
-          if (!formRes.sections || formRes.sections.length === 0) {
-            formRes.sections = [{ id: 'default', title: '', fields: formRes.fields || [] }];
+        const formRes = await formService.getFormBySlug(slug as string);
+
+        if (formRes.success && formRes.data) {
+          const formResolved = formRes.data;
+          if (!formResolved.sections || formResolved.sections.length === 0) {
+            formResolved.sections = [{ id: 'default', title: '', fields: formResolved.fields || [] }];
           }
-          setForm(formRes);
-          const initialData = buildInitialData(formRes.sections);
+          setForm(formResolved);
+          const initialData = buildInitialData(formResolved.sections);
+          setFormData(initialData);
 
           if (editRecordId) {
             const existing = await formService.getDynamicSubmissionById(slug as string, editRecordId);
             if (existing.success && existing.data?.data) {
               const flatData = flattenSubmissionData(existing.data.data);
               const mergedData = { ...initialData, ...flatData };
-              const allFields = formRes.sections.flatMap(s => s.fields || []);
+              const allFields = formResolved.sections.flatMap(s => s.fields || []);
               allFields.forEach((field: FieldSchema) => {
                 if (field.type === "file") mergedData[field.name] = [];
               });
@@ -83,8 +77,6 @@ function PublicFormViewContent() {
             } else {
               setFormData(initialData);
             }
-          } else {
-            setFormData(initialData);
           }
         } else {
           setErrorMsg("The requested form could not be found.");
@@ -117,27 +109,14 @@ function PublicFormViewContent() {
     setValidationErrors({});
 
     try {
-      const submissionData = new FormData();
+      const payload: Record<string, any> = {};
       Object.entries(formData).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((item) => {
-            if (item instanceof File) {
-              submissionData.append(key, item);
-            } else {
-              // Stringify if it's an object to prevent [object Object] storage
-              const finalValue = typeof item === "object" ? JSON.stringify(item) : item;
-              submissionData.append(key, finalValue);
-            }
-          });
-        } else {
-          const finalValue = typeof value === "object" && value !== null ? JSON.stringify(value) : value;
-          submissionData.append(key, finalValue);
-        }
+        payload[key] = value;
       });
 
       const result = editRecordId
-        ? await formService.updateDynamicSubmission(slug as string, editRecordId, submissionData)
-        : await formService.submitDynamicForm(slug as string, submissionData);
+        ? await formService.updateDynamicSubmission(slug as string, editRecordId, payload as any)
+        : await formService.submitDynamicFormJSON(slug as string, payload);
 
       if (result.success) {
         setStatus("success");
@@ -175,7 +154,7 @@ function PublicFormViewContent() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-10 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white p-12 rounded-[3rem] shadow-2xl border border-gray-100 max-w-md">
           <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-[1.5rem] flex items-center justify-center mb-8 mx-auto">
-                    <AlertCircle size={32} className="" />
+            <AlertCircle size={32} />
           </div>
           <h1 className="text-2xl font-black text-gray-900 font-display tracking-tight mb-4">{!form ? "404: Not Found" : "Not Accessible"}</h1>
           <p className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-8 leading-relaxed">
@@ -193,7 +172,6 @@ function PublicFormViewContent() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-10 md:py-20 px-3 md:px-4 flex justify-center items-start overflow-x-hidden">
-      {/* Decorative Elements */}
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-50/50 rounded-full blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-50/50 rounded-full blur-[120px] pointer-events-none" />
 
@@ -203,7 +181,6 @@ function PublicFormViewContent() {
         className="max-w-2xl w-full relative z-10"
       >
         <div className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.05)] border border-gray-50 overflow-hidden">
-          {/* Form Header */}
           <header className="px-6 md:px-12 pt-10 md:pt-16 pb-8 md:pb-12 text-center border-b border-gray-50 bg-gray-50/20 backdrop-blur-sm">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm mb-4 md:mb-6">
               <Zap size={12} className="text-indigo-600" />
@@ -224,7 +201,7 @@ function PublicFormViewContent() {
                   className="text-center py-8 md:py-10"
                 >
                   <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-[1.5rem] md:rounded-[2rem] mb-8 md:mb-10 shadow-xl shadow-emerald-50">
-                    <CheckCircle2 size={40} className="" />
+                    <CheckCircle2 size={40} />
                   </div>
                   <h2 className="text-2xl md:text-3xl font-black text-gray-900 font-display tracking-tight mb-3 md:mb-4 leading-none">
                     {editRecordId ? "Update Success" : "Transmission Success"}
@@ -234,21 +211,11 @@ function PublicFormViewContent() {
                       ? "Your prefilled data has been updated and stored."
                       : "Your data has been successfully validated and stored."}
                   </p>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="w-full"
-                    onClick={() => setStatus("idle")}
-                  >
+                  <Button variant="primary" size="lg" className="w-full" onClick={() => setStatus("idle")}>
                     Submit Another Response
                     <ArrowRight size={16} className="ml-2" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full mt-3 md:mt-4"
-                    onClick={() => router.push(`/submissions/${slug}`)}
-                  >
+                  <Button variant="outline" size="lg" className="w-full mt-3 md:mt-4" onClick={() => router.push(`/submissions/${slug}`)}>
                     <List size={16} className="mr-2" />
                     View Submissions
                   </Button>
@@ -256,11 +223,10 @@ function PublicFormViewContent() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-8 md:space-y-10">
                   {status === "error" && !Object.keys(validationErrors).length && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="text-[10px] md:text-[11px] font-bold text-red-500 px-2 flex items-center gap-1 mt-1 font-display"
+                      className="text-[10px] md:text-[11px] font-bold text-red-500 px-2 flex items-center gap-1 font-display"
                     >
                       <span className="w-1 h-1 bg-red-500 rounded-full" />
                       {errorMsg}
@@ -268,7 +234,7 @@ function PublicFormViewContent() {
                   )}
 
                   <div className="space-y-10 md:space-y-16">
-                    {form.sections?.map((section) => (
+                    {form.sections?.map((section: any) => (
                       <div key={section.id} className="space-y-6 md:space-y-8">
                         {section.title && (
                           <div className="flex items-center gap-3 md:gap-4 px-2">
@@ -279,7 +245,7 @@ function PublicFormViewContent() {
                           </div>
                         )}
                         <div className="space-y-8 md:space-y-10">
-                          {section.fields.map((field) => (
+                          {section.fields.map((field: any) => (
                             <FieldRenderer
                               key={field.id}
                               field={field}
@@ -294,21 +260,10 @@ function PublicFormViewContent() {
                   </div>
 
                   <div className="pt-6 md:pt-10 flex flex-col sm:flex-row gap-3 md:gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="lg"
-                      className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem] border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50"
-                      onClick={() => router.back()}
-                    >
+                    <Button type="button" variant="outline" size="lg" className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem] border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50" onClick={() => router.back()}>
                       Cancel
                     </Button>
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem]"
-                      isLoading={submitting}
-                    >
+                    <Button type="submit" size="lg" className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem]" isLoading={submitting}>
                       {editRecordId ? "Sync Changes" : "Confirm Submission"}
                       <ArrowRight size={18} className="ml-2 md:ml-3" />
                     </Button>
@@ -324,7 +279,6 @@ function PublicFormViewContent() {
             </p>
           </footer>
         </div>
-
       </motion.div>
     </div>
   );

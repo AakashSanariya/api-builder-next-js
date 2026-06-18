@@ -4,6 +4,8 @@ const path = require("path");
 const fs = require("fs");
 const User = require("../models/user.model");
 const Form = require("../models/form.model");
+const Relationship = require("../models/relationship.model");
+const RelationLink = require("../models/relationLink.model");
 const validateData = require("../utils/validator");
 const { JSONScalar } = require("./scalars");
 
@@ -63,6 +65,145 @@ const groupDataBySection = (sections, validatedData) => {
   return grouped;
 };
 
+const resolveRelations = async (records, form, userId) => {
+  if (!records || records.length === 0) return records;
+  if (!form) return records;
+
+  const relationships = await Relationship.find({
+    userId,
+    $or: [{ sourceFormId: form._id }, { targetFormId: form._id }],
+    eagerLoad: true,
+  });
+
+  if (relationships.length === 0) return records;
+
+  const recordIds = records.map((r) => r._id);
+  const recordsArray = Array.isArray(records) ? records : [records];
+
+  for (const record of recordsArray) {
+    record._related = {};
+  }
+
+  for (const rel of relationships) {
+    const isSource = rel.sourceFormId.toString() === form._id.toString();
+    const targetForm = await Form.findById(isSource ? rel.targetFormId : rel.sourceFormId);
+    if (!targetForm) continue;
+
+    const targetModel = getDynamicDataModel(targetForm.slug);
+    const label = isSource ? rel.targetLabel : rel.sourceLabel;
+    const targetFormId = isSource ? rel.targetFormId : rel.sourceFormId;
+
+    if (isSource) {
+      const links = await RelationLink.find({
+        sourceFormId: form._id,
+        sourceRecordId: { $in: recordIds },
+        relationshipId: rel._id,
+        userId,
+      });
+
+      for (const record of recordsArray) {
+        const recordLinks = links.filter(
+          (l) => l.sourceRecordId.toString() === record._id.toString()
+        );
+        if (recordLinks.length === 0) continue;
+
+        const targetIds = recordLinks.map((l) => l.targetRecordId);
+        const relatedDocs = await targetModel
+          .find({ _id: { $in: targetIds }, userId })
+          .lean();
+
+        if (rel.type === "one-to-one") {
+          record._related[label] = relatedDocs[0] || null;
+        } else {
+          record._related[label] = relatedDocs;
+        }
+      }
+    } else {
+      const links = await RelationLink.find({
+        targetFormId: form._id,
+        targetRecordId: { $in: recordIds },
+        relationshipId: rel._id,
+        userId,
+      });
+
+      for (const record of recordsArray) {
+        const recordLinks = links.filter(
+          (l) => l.targetRecordId.toString() === record._id.toString()
+        );
+        if (recordLinks.length === 0) continue;
+
+        const sourceIds = recordLinks.map((l) => l.sourceRecordId);
+        const relatedDocs = await targetModel
+          .find({ _id: { $in: sourceIds }, userId })
+          .lean();
+
+        if (rel.type === "one-to-one") {
+          record._related[label] = relatedDocs[0] || null;
+        } else {
+          record._related[label] = relatedDocs;
+        }
+      }
+    }
+  }
+
+  return records;
+};
+
+const processInlineRelations = async (relations, parentForm, parentRecordId, userId) => {
+  if (!relations || typeof relations !== "object") return;
+
+  for (const [relKey, relData] of Object.entries(relations)) {
+    const relationship = await Relationship.findOne({
+      userId,
+      $or: [
+        { sourceFormId: parentForm._id, targetLabel: relKey },
+        { targetFormId: parentForm._id, sourceLabel: relKey },
+      ],
+    });
+
+    if (!relationship) continue;
+
+    const isSource = relationship.sourceFormId.toString() === parentForm._id.toString();
+    const targetFormId = isSource ? relationship.targetFormId : relationship.sourceFormId;
+    const targetForm = await Form.findById(targetFormId);
+    if (!targetForm) continue;
+
+    const targetModel = getDynamicDataModel(targetForm.slug);
+    const items = Array.isArray(relData) ? relData : [relData];
+
+    for (const item of items) {
+      if (!item || typeof item !== "object") continue;
+
+      const targetRecord = await targetModel.create({
+        formSlug: targetForm.slug,
+        formId: targetForm._id,
+        data: item,
+        userId,
+      });
+
+      if (isSource) {
+        await RelationLink.create({
+          sourceFormId: parentForm._id,
+          sourceRecordId: parentRecordId,
+          targetFormId: targetForm._id,
+          targetRecordId: targetRecord._id,
+          relationshipId: relationship._id,
+          userId,
+        });
+      } else {
+        await RelationLink.create({
+          sourceFormId: targetForm._id,
+          sourceRecordId: targetRecord._id,
+          targetFormId: parentForm._id,
+          targetRecordId: parentRecordId,
+          relationshipId: relationship._id,
+          userId,
+        });
+      }
+    }
+  }
+};
+
 const validatePassword = (password) => {
   if (password.length < 8) return "Password must be at least 8 characters";
   if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
@@ -120,8 +261,10 @@ const resolvers = {
         DynamicData.countDocuments(filter),
       ]);
 
+      const data = await resolveRelations(records, form, context.userId);
+
       return {
-        records,
+        records: data,
         pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
       };
     },
@@ -138,7 +281,22 @@ const resolvers = {
       }).lean();
 
       if (!record) throw new Error("Submitted data not found");
-      return record;
+
+      const resolved = await resolveRelations([record], form, context.userId);
+      return resolved[0];
+    },
+
+    relationships: async (_, __, context) => {
+      requireAuth(context);
+      return Relationship.find({ userId: context.userId }).sort({ createdAt: -1 }).lean();
+    },
+
+    formRelationships: async (_, { formId }, context) => {
+      requireAuth(context);
+      return Relationship.find({
+        userId: context.userId,
+        $or: [{ sourceFormId: formId }, { targetFormId: formId }],
+      }).sort({ createdAt: -1 }).lean();
     },
   },
 
@@ -252,6 +410,20 @@ const resolvers = {
         mongoose.deleteModel(modelName);
       }
 
+      await RelationLink.deleteMany({
+        $or: [
+          { sourceFormId: form._id, userId: context.userId },
+          { targetFormId: form._id, userId: context.userId },
+        ],
+      });
+
+      await Relationship.deleteMany({
+        $or: [
+          { sourceFormId: form._id, userId: context.userId },
+          { targetFormId: form._id, userId: context.userId },
+        ],
+      });
+
       await Form.findOneAndDelete({ _id: id, userId: context.userId });
 
       return {
@@ -273,6 +445,9 @@ const resolvers = {
           : form.fields || [];
 
       const inputData = data || {};
+
+      const relations = inputData._relations;
+      delete inputData._relations;
 
       // Normalize data
       allFields.forEach((field) => {
@@ -338,6 +513,8 @@ const resolvers = {
         userId: context.userId,
       });
 
+      await processInlineRelations(relations, form, savedRecord._id, context.userId);
+
       return {
         success: true,
         message: `Successfully processed submission for '${form.name}'`,
@@ -358,6 +535,9 @@ const resolvers = {
           : form.fields || [];
 
       const inputData = data || {};
+
+      const relations = inputData._relations;
+      delete inputData._relations;
 
       // Normalize data
       allFields.forEach((field) => {
@@ -431,6 +611,16 @@ const resolvers = {
 
       if (!updatedRecord) throw new Error("Submitted data not found");
 
+      if (relations) {
+        await RelationLink.deleteMany({
+          $or: [
+            { sourceRecordId: recordId, userId: context.userId },
+            { targetRecordId: recordId, userId: context.userId },
+          ],
+        });
+        await processInlineRelations(relations, form, updatedRecord._id, context.userId);
+      }
+
       return {
         success: true,
         message: `Successfully updated submission for '${form.name}'`,
@@ -454,9 +644,98 @@ const resolvers = {
 
       if (!deletedRecord) throw new Error("Submitted data not found");
 
+      await RelationLink.deleteMany({
+        $or: [
+          { sourceRecordId: recordId, userId: context.userId },
+          { targetRecordId: recordId, userId: context.userId },
+        ],
+      });
+
       return {
         success: true,
         message: `Successfully deleted submission for '${form.name}'`,
+      };
+    },
+
+    createRelationship: async (_, { input }, context) => {
+      requireAuth(context);
+      const { sourceFormId, targetFormId, type, sourceLabel, targetLabel, eagerLoad } = input;
+
+      const validTypes = ["one-to-one", "one-to-many", "many-to-many"];
+      if (!validTypes.includes(type)) {
+        throw new Error("Invalid relationship type");
+      }
+
+      const [sourceForm, targetForm] = await Promise.all([
+        Form.findOne({ _id: sourceFormId, userId: context.userId }),
+        Form.findOne({ _id: targetFormId, userId: context.userId }),
+      ]);
+
+      if (!sourceForm) throw new Error("Source form not found");
+      if (!targetForm) throw new Error("Target form not found");
+
+      const existing = await Relationship.findOne({
+        sourceFormId,
+        targetFormId,
+        userId: context.userId,
+      });
+
+      if (existing) {
+        throw new Error("A relationship between these forms already exists");
+      }
+
+      const relationship = await Relationship.create({
+        sourceFormId,
+        targetFormId,
+        type,
+        sourceLabel: sourceLabel || sourceForm.name,
+        targetLabel: targetLabel || targetForm.name,
+        eagerLoad: eagerLoad ?? false,
+        userId: context.userId,
+      });
+
+      return relationship.toObject();
+    },
+
+    updateRelationship: async (_, { id, type, eagerLoad, sourceLabel, targetLabel }, context) => {
+      requireAuth(context);
+      const updateData = {};
+
+      if (type) {
+        const validTypes = ["one-to-one", "one-to-many", "many-to-many"];
+        if (!validTypes.includes(type)) {
+          throw new Error("Invalid relationship type");
+        }
+        updateData.type = type;
+      }
+      if (eagerLoad !== undefined) updateData.eagerLoad = eagerLoad;
+      if (sourceLabel !== undefined) updateData.sourceLabel = sourceLabel;
+      if (targetLabel !== undefined) updateData.targetLabel = targetLabel;
+
+      const relationship = await Relationship.findOneAndUpdate(
+        { _id: id, userId: context.userId },
+        updateData,
+        { new: true }
+      );
+
+      if (!relationship) throw new Error("Relationship not found");
+      return relationship.toObject();
+    },
+
+    deleteRelationship: async (_, { id }, context) => {
+      requireAuth(context);
+      const relationship = await Relationship.findOneAndDelete({
+        _id: id,
+        userId: context.userId,
+      });
+
+      if (!relationship) throw new Error("Relationship not found");
+
+      await RelationLink.deleteMany({ relationshipId: relationship._id });
+
+      return {
+        success: true,
+        message: "Relationship and all associated links have been removed",
       };
     },
   },

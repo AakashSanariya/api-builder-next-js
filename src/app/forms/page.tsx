@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formService } from "../../services/form.service";
 import { FormModel } from "../../types/form.types";
 import { usePopup } from "../../contexts/PopupContext";
-import { Plus, Edit2, ExternalLink, Activity, Layout, Search, Layers, Box, Terminal, Globe, Loader2 } from "lucide-react";
+import { Plus, Edit2, ExternalLink, Activity, Layout, Search, Layers, Box, Terminal, Globe, Loader2, GitBranch } from "lucide-react";
 
 import Button from "../../components/common/Button";
 import ProtectedRoute from "../../components/auth/ProtectedRoute";
@@ -185,7 +185,7 @@ function DashboardContent() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 md:gap-4 relative z-10 mb-3 md:mb-4">
+                    <div className="grid grid-cols-3 gap-2 md:gap-3 relative z-10 mb-3 md:mb-4">
                       <Button
                         variant="outline"
                         size="sm"
@@ -196,13 +196,22 @@ function DashboardContent() {
                         <span className="hidden md:inline">Design</span>
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
                         onClick={() => router.push(`/api-docs/${form._id}`)}
-                        className="w-full h-11 md:h-14 text-xs md:text-sm rounded-xl md:rounded-2xl"
+                        className="w-full h-11 md:h-14 text-xs md:text-sm rounded-xl md:rounded-2xl bg-gray-50/50 hover:bg-white"
                       >
                         <ExternalLink size={14} className="md:mr-2" />
                         <span className="hidden md:inline">Docs</span>
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => router.push(`/relationships/${form._id}`)}
+                        className="w-full h-11 md:h-14 text-xs md:text-sm rounded-xl md:rounded-2xl"
+                      >
+                        <GitBranch size={14} className="md:mr-2" />
+                        <span className="hidden md:inline">Relations</span>
                       </Button>
                     </div>
 

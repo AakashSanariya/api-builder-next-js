@@ -13,7 +13,8 @@ import {
   HelpCircle,
   LogOut,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  GitBranch
 } from "lucide-react";
 
 interface NavItem {
@@ -25,6 +26,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/forms" },
+  { icon: GitBranch, label: "Relationships", path: "/relationships" },
   { icon: BarChart3, label: "Analytics", path: "/analytics", comingSoon: true },
   { icon: Layers, label: "Integrations", path: "/integrations", comingSoon: true },
   { icon: Settings, label: "System Settings", path: "/settings", comingSoon: true },

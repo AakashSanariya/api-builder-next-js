@@ -5,12 +5,16 @@ import { useParams, useRouter } from "next/navigation";
 import { formService } from "../../../services/form.service";
 import Button from "../../../components/common/Button";
 import { usePopup } from "../../../contexts/PopupContext";
-import { ArrowLeft, Edit2, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit2, Trash2, Loader2, ChevronDown, ChevronRight, Link2 } from "lucide-react";
+import { Relationship } from "../../../types/relationship.types";
+import { relationshipService } from "../../../services/relationship.service";
+import ManageRelationsModal from "../../../components/relationships/ManageRelationsModal";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 
 type SubmissionRow = {
   _id: string;
   data: Record<string, any>;
+  _related?: Record<string, any>;
   createdAt?: string;
 };
 
@@ -21,6 +25,9 @@ function SubmissionListPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [relationships, setRelationships] = useState<Relationship[]>([]);
+  const [relModalRecordId, setRelModalRecordId] = useState<string | null>(null);
   const { showPopup } = usePopup();
 
   const flattenData = (data: Record<string, any>) => {
@@ -65,7 +72,7 @@ function SubmissionListPageContent() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await formService.listDynamicSubmissions(slug as string);
+        const res = await formService.listDynamicSubmissions(slug as string, 1, 20);
         if (res.success && res.data) {
           setRows(res.data);
         } else {
@@ -79,6 +86,14 @@ function SubmissionListPageContent() {
     };
 
     if (slug) loadData();
+
+    const loadRels = async () => {
+      try {
+        const res = await relationshipService.getByFormId(slug as string);
+        if (res.success && res.data) setRelationships(res.data);
+      } catch { /* ignore */ }
+    };
+    loadRels();
   }, [slug]);
 
   if (loading) {
@@ -98,16 +113,30 @@ function SubmissionListPageContent() {
           <span className="sm:hidden">Back</span>
         </Button>
 
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900">Submitted Data: <span className="text-indigo-600">{slug}</span></h1>
-          <p className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2">Each row can be opened in edit mode.</p>
-        </div>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black text-gray-900">Submitted Data: <span className="text-indigo-600">{slug}</span></h1>
+              <p className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2">Each row can be opened in edit mode.</p>
+            </div>
+          </div>
 
         {error && (
           <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 md:p-4 text-xs md:text-sm font-bold">
             {error}
           </div>
         )}
+
+        <ManageRelationsModal
+          isOpen={!!relModalRecordId}
+          onClose={() => setRelModalRecordId(null)}
+          recordId={relModalRecordId || ""}
+          slug={slug as string}
+          relationships={relationships}
+          onUpdated={() => {
+            setRelModalRecordId(null);
+            window.location.reload();
+          }}
+        />
 
         {!rows.length ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 md:p-8 text-gray-500 text-sm">
@@ -117,9 +146,10 @@ function SubmissionListPageContent() {
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             {/* Desktop Table */}
             <div className="hidden md:block">
-            <table className="w-full text-sm">
+              <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="text-left px-2 py-3 w-8"></th>
                   <th className="text-left px-4 py-3">Record ID</th>
                   <th className="text-left px-4 py-3">Preview</th>
                   <th className="text-left px-4 py-3">Created</th>
@@ -127,49 +157,113 @@ function SubmissionListPageContent() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr key={row._id} className="border-t border-gray-100">
-                    <td className="px-4 py-3 font-mono text-xs">{row._id}</td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {(() => {
-                        const flat = flattenData(row.data);
-                        return Object.entries(flat)
-                          .slice(0, 3)
-                          .map(([fk, fv]) => {
-                            const displayVal = Array.isArray(fv) 
-                              ? fv.map(item => String(item)).join(", ")
-                              : String(fv);
-                            return `${fk}: ${displayVal}`;
-                          })
-                          .join(" | ");
-                      })()}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {row.createdAt ? new Date(row.createdAt).toLocaleString() : "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => router.push(`/view/${slug}?editId=${row._id}`)}
-                        >
-                          <Edit2 size={14} className="mr-2" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-500 border-red-100 hover:bg-red-50 hover:border-red-300"
-                          onClick={() => handleDelete(row._id)}
-                          isLoading={deletingId === row._id}
-                        >
-                          <Trash2 size={14} className="mr-2" />
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {rows.map((row) => {
+                  const hasRelated = row._related && Object.keys(row._related).length > 0;
+                  const isExpanded = expandedRows.has(row._id);
+                  return (
+                    <React.Fragment key={row._id}>
+                      <tr className="border-t border-gray-100">
+                        <td className="px-2 py-3">
+                          {hasRelated && (
+                            <button
+                              onClick={() => {
+                                setExpandedRows(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(row._id)) next.delete(row._id);
+                                  else next.add(row._id);
+                                  return next;
+                                });
+                              }}
+                              className="p-1 hover:bg-gray-100 rounded-lg transition-all"
+                            >
+                              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} className="text-gray-400" />}
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs">{row._id}</td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {(() => {
+                            const flat = flattenData(row.data);
+                            return Object.entries(flat)
+                              .slice(0, 3)
+                              .map(([fk, fv]) => {
+                                const displayVal = Array.isArray(fv) 
+                                  ? fv.map(item => String(item)).join(", ")
+                                  : String(fv);
+                                return `${fk}: ${displayVal}`;
+                              })
+                              .join(" | ");
+                          })()}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">
+                          {row.createdAt ? new Date(row.createdAt).toLocaleString() : "-"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {relationships.length > 0 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setRelModalRecordId(row._id)}
+                              >
+                                <Link2 size={14} className="mr-2" />
+                                Relations
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              onClick={() => router.push(`/view/${slug}?editId=${row._id}`)}
+                            >
+                              <Edit2 size={14} className="mr-2" />
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-500 border-red-100 hover:bg-red-50 hover:border-red-300"
+                              onClick={() => handleDelete(row._id)}
+                              isLoading={deletingId === row._id}
+                            >
+                              <Trash2 size={14} className="mr-2" />
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                      {isExpanded && hasRelated && (
+                        <tr key={`${row._id}-related`} className="bg-indigo-50/30">
+                          <td colSpan={5} className="px-6 py-4">
+                            <div className="space-y-3">
+                              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-wider">Related Records</p>
+                              {Object.entries(row._related!).map(([label, data]) => (
+                                <div key={label} className="bg-white rounded-xl p-4 border border-indigo-100">
+                                  <p className="text-[11px] font-black text-gray-700 mb-2">{label}</p>
+                                  {Array.isArray(data) ? (
+                                    data.length > 0 ? (
+                                      <div className="space-y-2">
+                                        {data.map((item: any, i: number) => (
+                                          <div key={i} className="text-[10px] text-gray-600 font-mono bg-gray-50 rounded-lg p-2">
+                                            {JSON.stringify(item.data || item).slice(0, 200)}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-[10px] text-gray-400 italic">No related records</p>
+                                    )
+                                  ) : (
+                                    <div className="text-[10px] text-gray-600 font-mono bg-gray-50 rounded-lg p-2">
+                                      {JSON.stringify(data?.data || data).slice(0, 200)}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
             </div>
@@ -202,7 +296,30 @@ function SubmissionListPageContent() {
                     })()}
                   </div>
 
+                  {row._related && Object.keys(row._related).length > 0 && (
+                    <div className="bg-indigo-50/50 rounded-xl p-3 space-y-2">
+                      <p className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">Related</p>
+                      {Object.entries(row._related).map(([label, data]) => (
+                        <div key={label} className="text-[9px] text-gray-600">
+                          <span className="font-bold">{label}: </span>
+                          {Array.isArray(data) ? `${data.length} records` : "1 record"}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2">
+                    {relationships.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs"
+                        onClick={() => setRelModalRecordId(row._id)}
+                      >
+                        <Link2 size={12} className="mr-1" />
+                        Relations
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       className="flex-1 text-xs"

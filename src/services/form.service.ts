@@ -46,13 +46,19 @@ export const formService = {
       body: data,
     }),
 
+  submitDynamicFormJSON: (slug: string, data: Record<string, any>) =>
+    apiRequest<ApiResponse<any>>(`/api/${slug}`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   getDynamicSubmissionById: (slug: string, recordId: string) =>
     apiRequest<ApiResponse<{ _id: string; data: Record<string, any> }>>(
       `/api/${slug}/data/${recordId}`
     ),
 
   listDynamicSubmissions: (slug: string, page: number = 1, limit: number = 20) =>
-    apiRequest<ApiResponse<Array<{ _id: string; data: Record<string, any>; createdAt?: string }>>>(
+    apiRequest<ApiResponse<Array<{ _id: string; data: Record<string, any>; _related?: Record<string, any>; createdAt?: string }>>>(
       `/api/${slug}/data?page=${page}&limit=${limit}`
     ),
 

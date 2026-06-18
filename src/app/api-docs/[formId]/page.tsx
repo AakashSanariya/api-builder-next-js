@@ -4,15 +4,24 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { formService } from "../../../services/form.service";
+import { relationshipService } from "../../../services/relationship.service";
 import { FormModel } from "../../../types/form.types";
-import { Loader2, ArrowLeft, Copy, Check, Terminal, Globe, Code, Box, Info, Lock, Braces, FileJson, BookOpen } from "lucide-react";
+import { Relationship, RelationshipType } from "../../../types/relationship.types";
+import { Loader2, ArrowLeft, Copy, Check, Terminal, Globe, Code, Box, Info, Lock, Braces, FileJson, BookOpen, GitBranch, ArrowRight } from "lucide-react";
 import Button from "../../../components/common/Button";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
+
+const TYPE_BADGES: Record<RelationshipType, { label: string; color: string }> = {
+  "one-to-one": { label: "1:1", color: "text-blue-600 bg-blue-50 border-blue-100" },
+  "one-to-many": { label: "1:N", color: "text-amber-600 bg-amber-50 border-amber-100" },
+  "many-to-many": { label: "N:M", color: "text-purple-600 bg-purple-50 border-purple-100" },
+};
 
 function ApiDocsPageContent() {
   const { formId } = useParams();
   const router = useRouter();
   const [form, setForm] = useState<FormModel | null>(null);
+  const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [apiType, setApiType] = useState<"rest" | "graphql">("rest");
@@ -22,10 +31,15 @@ function ApiDocsPageContent() {
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        const res = await formService.getFormById(formId as string);
-        if (res.success && res.data) {
-          setForm(res.data);
+        const [formRes, relsRes] = await Promise.all([
+          formService.getFormById(formId as string),
+          relationshipService.getByFormId(formId as string).catch(() => ({ success: false, data: [] })),
+        ]);
+        if (formRes.success && formRes.data) {
+          setForm(formRes.data);
         }
+        const rels = (relsRes as any)?.data;
+        if (rels) setRelationships(rels);
       } catch (err) {
         console.error(err);
         router.push("/forms");
@@ -551,6 +565,40 @@ function ApiDocsPageContent() {
                     </motion.section>
                 </div>
 
+                {relationships.length > 0 && (
+                  <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+                      className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
+                  >
+                      <div className="flex items-center gap-3 mb-6 md:mb-8">
+                         <div className="p-2 md:p-3 bg-amber-50 text-amber-600 rounded-xl md:rounded-2xl shrink-0">
+                            <GitBranch size={16} className="md:hidden" />
+                            <GitBranch size={20} className="hidden md:block" />
+                         </div>
+                         <div className="min-w-0">
+                            <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">Table Relationships</h2>
+                            <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">Related data tables connected to this schema</p>
+                         </div>
+                      </div>
+                      <div className="space-y-3">
+                        {relationships.map(rel => {
+                          const isSource = rel.sourceFormId === formId;
+                          const badge = TYPE_BADGES[rel.type];
+                          return (
+                            <div key={rel._id} className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl border border-gray-100">
+                              <span className="text-xs md:text-sm font-black text-gray-700">{isSource ? rel.sourceLabel : rel.targetLabel}</span>
+                              <span className={`font-black text-[9px] md:text-[10px] px-2 py-1 rounded-lg border ${badge.color}`}>{badge.label}</span>
+                              <ArrowRight size={14} className="text-gray-300" />
+                              <span className="text-xs md:text-sm font-black text-gray-700">{isSource ? rel.targetLabel : rel.sourceLabel}</span>
+                              {rel.eagerLoad && (
+                                <span className="ml-auto text-[8px] md:text-[9px] font-black text-emerald-600 uppercase tracking-wider px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100">Auto-loaded</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                  </motion.section>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                     <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
                         className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]"
@@ -792,6 +840,43 @@ function ApiDocsPageContent() {
                     })}
                   </div>
               </motion.section>
+
+              {relationships.length > 0 && (
+                <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.125 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                    <div className="flex items-center gap-3 mb-6 md:mb-8">
+                       <div className="p-2 md:p-3 bg-amber-50 text-amber-600 rounded-xl md:rounded-2xl shrink-0">
+                          <GitBranch size={16} className="md:hidden" />
+                          <GitBranch size={20} className="hidden md:block" />
+                       </div>
+                       <div className="min-w-0">
+                          <h2 className="text-lg md:text-xl font-black text-gray-800 font-display">Relationships</h2>
+                           <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 md:mt-1">Related data is automatically included in all responses</p>
+                       </div>
+                    </div>
+                    <div className="space-y-3">
+                      {relationships.map(rel => {
+                        const isSource = rel.sourceFormId === formId;
+                        const badge = TYPE_BADGES[rel.type];
+                        return (
+                          <div key={rel._id} className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <span className="text-xs font-black text-gray-700">{isSource ? rel.sourceLabel : rel.targetLabel}</span>
+                            <span className={`font-black text-[9px] px-2 py-1 rounded-lg border ${badge.color}`}>{badge.label}</span>
+                            <ArrowRight size={14} className="text-gray-300" />
+                            <span className="text-xs font-black text-gray-700">{isSource ? rel.targetLabel : rel.sourceLabel}</span>
+                            {rel.eagerLoad && (
+                              <span className="ml-auto text-[8px] font-black text-emerald-600 uppercase tracking-wider px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100">Auto-loaded</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                      <p className="text-[9px] text-blue-700 font-bold">
+                        Related data is always included in list and detail responses automatically.
+                      </p>
+                    </div>
+                </motion.section>
+              )}
 
               {/* GraphQL Fetch Example */}
               <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-50 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">

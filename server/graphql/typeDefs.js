@@ -127,12 +127,49 @@ const typeDefs = `#graphql
     email: String
   }
 
+  type Relationship {
+    _id: ID!
+    sourceFormId: ID!
+    targetFormId: ID!
+    type: String!
+    sourceLabel: String
+    targetLabel: String
+    eagerLoad: Boolean!
+    userId: ID!
+    createdAt: String
+    updatedAt: String
+  }
+
+  type DynamicRecordWithRelations {
+    _id: ID!
+    formSlug: String!
+    formId: ID!
+    data: JSON!
+    related: JSON!
+    ip: String
+    userAgent: String
+    userId: ID!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input RelationshipInput {
+    sourceFormId: ID!
+    targetFormId: ID!
+    type: String!
+    sourceLabel: String
+    targetLabel: String
+    eagerLoad: Boolean
+  }
+
   type Query {
     me: UserProfile!
     forms: [Form!]!
     form(id: ID!): Form
     submissions(slug: String!, page: Int, limit: Int): SubmissionList!
     submission(slug: String!, recordId: ID!): DynamicRecord
+    relationships: [Relationship!]!
+    formRelationships(formId: ID!): [Relationship!]!
   }
 
   type Mutation {
@@ -144,6 +181,9 @@ const typeDefs = `#graphql
     createSubmission(slug: String!, data: JSON, files: [Upload!]): SubmissionPayload!
     updateSubmission(slug: String!, recordId: ID!, data: JSON, files: [Upload!]): SubmissionPayload!
     deleteSubmission(slug: String!, recordId: ID!): DeletePayload!
+    createRelationship(input: RelationshipInput!): Relationship!
+    updateRelationship(id: ID!, type: String, eagerLoad: Boolean, sourceLabel: String, targetLabel: String): Relationship!
+    deleteRelationship(id: ID!): DeletePayload!
   }
 `;
 
