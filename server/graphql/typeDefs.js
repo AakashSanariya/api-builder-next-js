@@ -140,19 +140,6 @@ const typeDefs = `#graphql
     updatedAt: String
   }
 
-  type DynamicRecordWithRelations {
-    _id: ID!
-    formSlug: String!
-    formId: ID!
-    data: JSON!
-    related: JSON!
-    ip: String
-    userAgent: String
-    userId: ID!
-    createdAt: String!
-    updatedAt: String!
-  }
-
   input RelationshipInput {
     sourceFormId: ID!
     targetFormId: ID!

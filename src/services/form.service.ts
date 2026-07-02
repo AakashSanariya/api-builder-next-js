@@ -58,7 +58,7 @@ export const formService = {
     ),
 
   listDynamicSubmissions: (slug: string, page: number = 1, limit: number = 20) =>
-    apiRequest<ApiResponse<Array<{ _id: string; data: Record<string, any>; _related?: Record<string, any>; createdAt?: string }>>>(
+    apiRequest<ApiResponse<Array<{ _id: string; data: Record<string, any>; createdAt?: string }>>>(
       `/api/${slug}/data?page=${page}&limit=${limit}`
     ),
 

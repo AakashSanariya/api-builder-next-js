@@ -14,7 +14,6 @@ import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 type SubmissionRow = {
   _id: string;
   data: Record<string, any>;
-  _related?: Record<string, any>;
   createdAt?: string;
 };
 
@@ -30,14 +29,24 @@ function SubmissionListPageContent() {
   const [relModalRecordId, setRelModalRecordId] = useState<string | null>(null);
   const { showPopup } = usePopup();
 
+  const getRelatedSections = (data: Record<string, any>) => {
+    if (!data) return [];
+    return Object.entries(data).filter(([key]) => key.endsWith('_rel'));
+  };
+
   const flattenData = (data: Record<string, any>) => {
     if (!data) return {};
-    const isNested = Object.values(data).some(v => 
+    const fieldEntries = Object.entries(data).filter(([key]) => !key.endsWith('_rel'));
+    const isNested = fieldEntries.some(([_, v]) => 
       v !== null && typeof v === 'object' && !Array.isArray(v)
     );
-    if (!isNested) return data;
+    if (!isNested) {
+      const flat: Record<string, any> = {};
+      fieldEntries.forEach(([k, v]) => { flat[k] = v; });
+      return flat;
+    }
     const flat: Record<string, any> = {};
-    Object.values(data).forEach(sVal => {
+    fieldEntries.forEach(([_, sVal]) => {
        if (typeof sVal === 'object' && sVal !== null) Object.assign(flat, sVal);
     });
     return flat;
@@ -158,7 +167,8 @@ function SubmissionListPageContent() {
               </thead>
               <tbody>
                 {rows.map((row) => {
-                  const hasRelated = row._related && Object.keys(row._related).length > 0;
+                  const relatedEntries = getRelatedSections(row.data);
+                  const hasRelated = relatedEntries.length > 0;
                   const isExpanded = expandedRows.has(row._id);
                   return (
                     <React.Fragment key={row._id}>
@@ -235,13 +245,15 @@ function SubmissionListPageContent() {
                           <td colSpan={5} className="px-6 py-4">
                             <div className="space-y-3">
                               <p className="text-[10px] font-black text-indigo-600 uppercase tracking-wider">Related Records</p>
-                              {Object.entries(row._related!).map(([label, data]) => (
-                                <div key={label} className="bg-white rounded-xl p-4 border border-indigo-100">
-                                  <p className="text-[11px] font-black text-gray-700 mb-2">{label}</p>
-                                  {Array.isArray(data) ? (
-                                    data.length > 0 ? (
+                              {relatedEntries.map(([key, relData]) => {
+                                const label = key.replace(/^section_|_rel$/g, '').replace(/_/g, ' ');
+                                return (
+                                <div key={key} className="bg-white rounded-xl p-4 border border-indigo-100">
+                                  <p className="text-[11px] font-black text-gray-700 mb-2 uppercase">{label}</p>
+                                  {Array.isArray(relData) ? (
+                                    relData.length > 0 ? (
                                       <div className="space-y-2">
-                                        {data.map((item: any, i: number) => (
+                                        {relData.map((item: any, i: number) => (
                                           <div key={i} className="text-[10px] text-gray-600 font-mono bg-gray-50 rounded-lg p-2">
                                             {JSON.stringify(item.data || item).slice(0, 200)}
                                           </div>
@@ -252,11 +264,12 @@ function SubmissionListPageContent() {
                                     )
                                   ) : (
                                     <div className="text-[10px] text-gray-600 font-mono bg-gray-50 rounded-lg p-2">
-                                      {JSON.stringify(data?.data || data).slice(0, 200)}
+                                      {JSON.stringify(relData?.data || relData).slice(0, 200)}
                                     </div>
                                   )}
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </td>
                         </tr>
@@ -296,17 +309,23 @@ function SubmissionListPageContent() {
                     })()}
                   </div>
 
-                  {row._related && Object.keys(row._related).length > 0 && (
-                    <div className="bg-indigo-50/50 rounded-xl p-3 space-y-2">
-                      <p className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">Related</p>
-                      {Object.entries(row._related).map(([label, data]) => (
-                        <div key={label} className="text-[9px] text-gray-600">
-                          <span className="font-bold">{label}: </span>
-                          {Array.isArray(data) ? `${data.length} records` : "1 record"}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {(() => {
+                    const mobileRelated = getRelatedSections(row.data);
+                    return mobileRelated.length > 0 ? (
+                      <div className="bg-indigo-50/50 rounded-xl p-3 space-y-2">
+                        <p className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">Related</p>
+                        {mobileRelated.map(([key, relData]) => {
+                          const label = key.replace(/^section_|_rel$/g, '').replace(/_/g, ' ');
+                          return (
+                          <div key={key} className="text-[9px] text-gray-600">
+                            <span className="font-bold">{label}: </span>
+                            {Array.isArray(relData) ? `${relData.length} records` : "1 record"}
+                          </div>
+                          );
+                        })}
+                      </div>
+                    ) : null;
+                  })()}
 
                   <div className="flex items-center gap-2">
                     {relationships.length > 0 && (

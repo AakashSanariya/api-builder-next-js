@@ -65,6 +65,16 @@ const groupDataBySection = (sections, validatedData) => {
   return grouped;
 };
 
+const slugifyRel = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "_");
+};
+
 const resolveRelations = async (records, form, userId) => {
   if (!records || records.length === 0) return records;
   if (!form) return records;
@@ -80,10 +90,6 @@ const resolveRelations = async (records, form, userId) => {
   const recordIds = records.map((r) => r._id);
   const recordsArray = Array.isArray(records) ? records : [records];
 
-  for (const record of recordsArray) {
-    record._related = {};
-  }
-
   for (const rel of relationships) {
     const isSource = rel.sourceFormId.toString() === form._id.toString();
     const targetForm = await Form.findById(isSource ? rel.targetFormId : rel.sourceFormId);
@@ -92,6 +98,7 @@ const resolveRelations = async (records, form, userId) => {
     const targetModel = getDynamicDataModel(targetForm.slug);
     const label = isSource ? rel.targetLabel : rel.sourceLabel;
     const targetFormId = isSource ? rel.targetFormId : rel.sourceFormId;
+    const relKey = `section_${slugifyRel(label)}_rel`;
 
     if (isSource) {
       const links = await RelationLink.find({
@@ -113,9 +120,9 @@ const resolveRelations = async (records, form, userId) => {
           .lean();
 
         if (rel.type === "one-to-one") {
-          record._related[label] = relatedDocs[0] || null;
+          record.data[relKey] = relatedDocs[0] || null;
         } else {
-          record._related[label] = relatedDocs;
+          record.data[relKey] = relatedDocs;
         }
       }
     } else {
@@ -138,9 +145,9 @@ const resolveRelations = async (records, form, userId) => {
           .lean();
 
         if (rel.type === "one-to-one") {
-          record._related[label] = relatedDocs[0] || null;
+          record.data[relKey] = relatedDocs[0] || null;
         } else {
-          record._related[label] = relatedDocs;
+          record.data[relKey] = relatedDocs;
         }
       }
     }

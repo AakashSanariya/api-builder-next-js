@@ -150,10 +150,24 @@ function ApiDocsPageContent() {
 
   const sampleRequest = buildsSampleRequest();
 
+  const sampleResponseData = {
+    ...sampleRequest,
+    ...(relationships.length > 0
+      ? Object.fromEntries(
+          relationships.map(rel => {
+            const label = rel.targetLabel || rel.sourceLabel || "related";
+            const relKey = `section_${slugify(label)}_rel`;
+            const isMany = rel.type !== "one-to-one";
+            return [relKey, isMany ? [{ _id: "related_id_1", data: { field: "value" } }] : { _id: "related_id_1", data: { field: "value" } }];
+          })
+        )
+      : {}),
+  };
+
   const sampleResponse = {
     success: true,
     message: `Successfully processed submission for '${form.name}'`,
-    data: sampleRequest,
+    data: sampleResponseData,
     timestamp: new Date().toISOString()
   };
 
@@ -164,7 +178,7 @@ function ApiDocsPageContent() {
         _id: "record_id_1",
         formSlug: form.slug,
         formId: form._id,
-        data: sampleRequest,
+        data: sampleResponseData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
