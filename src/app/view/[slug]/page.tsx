@@ -69,10 +69,6 @@ function PublicFormViewContent() {
             if (existing.success && existing.data?.data) {
               const flatData = flattenSubmissionData(existing.data.data);
               const mergedData = { ...initialData, ...flatData };
-              const allFields = formResolved.sections.flatMap(s => s.fields || []);
-              allFields.forEach((field: FieldSchema) => {
-                if (field.type === "file") mergedData[field.name] = [];
-              });
               setFormData(mergedData);
             } else {
               setFormData(initialData);
@@ -114,9 +110,30 @@ function PublicFormViewContent() {
         payload[key] = value;
       });
 
-      const result = editRecordId
-        ? await formService.updateDynamicSubmission(slug as string, editRecordId, payload as any)
-        : await formService.submitDynamicFormJSON(slug as string, payload);
+      const hasFiles = Object.values(payload).some(
+        (v) =>
+          (Array.isArray(v) && v.some((item) => item instanceof File)) ||
+          v instanceof File
+      );
+
+      let result;
+      if (editRecordId || hasFiles) {
+        const formDataObj = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value instanceof File) {
+            formDataObj.append(key, value);
+          } else if (Array.isArray(value)) {
+            value.forEach((item) => formDataObj.append(key, item));
+          } else {
+            formDataObj.append(key, value);
+          }
+        });
+        result = editRecordId
+          ? await formService.updateDynamicSubmission(slug as string, editRecordId, formDataObj)
+          : await formService.submitDynamicForm(slug as string, formDataObj);
+      } else {
+        result = await formService.submitDynamicFormJSON(slug as string, payload);
+      }
 
       if (result.success) {
         setStatus("success");

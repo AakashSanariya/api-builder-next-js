@@ -2,17 +2,33 @@
  
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, File as FileIcon, Image as ImageIcon, Plus } from "lucide-react";
+import { Upload, X, File as FileIcon, Image as ImageIcon, Plus, ExternalLink } from "lucide-react";
  
 interface FileUploadProps {
   label: string;
   name: string;
-  value: File[];
-  onChange: (files: File[]) => void;
+  value: Array<string | File>;
+  onChange: (files: Array<string | File>) => void;
   error?: string;
   required?: boolean;
   multiple?: boolean;
 }
+
+const UPLOAD_URL_RE = /\/uploads\/([^/?#]+)$/;
+
+const isImageUrl = (url: string) => /\.(png|jpe?g|gif|webp|svg|bmp|avif|ico)(\?|#|$)/i.test(url);
+
+const filenameFromUrl = (url: string) => {
+  const match = url.match(UPLOAD_URL_RE);
+  if (match) {
+    try {
+      return decodeURIComponent(match[1]);
+    } catch {
+      return match[1];
+    }
+  }
+  return url;
+};
  
 const FileUpload: React.FC<FileUploadProps> = ({
   label,
@@ -106,36 +122,60 @@ const FileUpload: React.FC<FileUploadProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             className="grid grid-cols-1 gap-2 md:gap-3 mt-3 md:mt-4"
           >
-            {value.map((file, idx) => (
-              <motion.div
-                key={`${file.name}-${idx}`}
-                layout
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center justify-between p-3 md:p-4 bg-white border border-gray-50 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all group"
-              >
-                <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
-                  <div className={`p-1.5 md:p-2 rounded-lg md:rounded-xl shrink-0 ${file.type.startsWith("image/") ? "bg-amber-50 text-amber-500" : "bg-blue-50 text-blue-500"}`}>
-                    {file.type.startsWith("image/") ? <ImageIcon size={16} className="" /> : <FileIcon size={16} className="" />}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-black text-gray-700 truncate font-display">
-                        {file.name}
-                    </span>
-                    <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
-                  className="p-1.5 md:p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg md:rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
+            {value.map((entry, idx) => {
+              const isFile = entry instanceof File;
+              const isUrlString = !isFile && typeof entry === "string" && UPLOAD_URL_RE.test(entry);
+              const name = isFile ? entry.name : filenameFromUrl(String(entry));
+              const isImage = isFile ? entry.type.startsWith("image/") : isImageUrl(String(entry));
+              return (
+                <motion.div
+                  key={`${name}-${idx}`}
+                  layout
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center justify-between p-3 md:p-4 bg-white border border-gray-50 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all group"
                 >
-                  <X size={14} className="" />
-                </button>
-              </motion.div>
-            ))}
+                  <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
+                    <div className={`p-1.5 md:p-2 rounded-lg md:rounded-xl shrink-0 ${isImage ? "bg-amber-50 text-amber-500" : "bg-blue-50 text-blue-500"}`}>
+                      {isImage && isUrlString ? (
+                        <img src={String(entry)} alt={name} className="w-6 h-6 md:w-7 md:h-7 rounded object-cover" />
+                      ) : isImage ? (
+                        <ImageIcon size={16} className="" />
+                      ) : (
+                        <FileIcon size={16} className="" />
+                      )}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      {isUrlString ? (
+                        <a
+                          href={String(entry)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-black text-gray-700 truncate font-display hover:text-indigo-600 flex items-center gap-1"
+                        >
+                          {name}
+                          <ExternalLink size={10} className="shrink-0 opacity-50" />
+                        </a>
+                      ) : (
+                        <span className="text-xs font-black text-gray-700 truncate font-display">
+                          {name}
+                        </span>
+                      )}
+                      <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+                        {isFile ? `${(entry.size / 1024 / 1024).toFixed(2)} MB` : "Uploaded"}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
+                    className="p-1.5 md:p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg md:rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                  >
+                    <X size={14} className="" />
+                  </button>
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>

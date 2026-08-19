@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Check, Loader2 } from "lucide-react";
 import { formService } from "../../services/form.service";
+import FileDisplay from "../common/FileDisplay";
 
 interface RecordItem {
   _id: string;
@@ -96,7 +97,7 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
           <div className="space-y-1">
             {filtered.map((r) => {
               const flat = flattenRecord(r.data);
-              const preview = Object.entries(flat).slice(0, 2).map(([k, v]) => `${k}: ${String(v).slice(0, 30)}`).join(" | ");
+              const entries = Object.entries(flat).slice(0, 2);
               return (
                 <button
                   key={r._id}
@@ -109,7 +110,20 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
                   }`}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold truncate">{preview || r._id}</p>
+                    <p className="text-xs font-bold truncate">
+                      {entries.length === 0 ? (
+                        r._id
+                      ) : (
+                        <span className="inline-flex items-center gap-2 flex-wrap">
+                          {entries.map(([k, v]) => (
+                            <span key={k} className="inline-flex items-center gap-1">
+                              <span className="font-mono text-[9px] text-gray-400">{k}:</span>
+                              <FileDisplay value={v} compact />
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-[9px] font-mono text-gray-400 truncate mt-0.5">{r._id}</p>
                   </div>
                   {selectedId === r._id && <Check size={14} className="text-indigo-600 shrink-0" />}

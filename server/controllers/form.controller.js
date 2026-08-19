@@ -1,7 +1,65 @@
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const Form = require("../models/form.model");
 const Relationship = require("../models/relationship.model");
 const RelationLink = require("../models/relationLink.model");
+
+const uploadsDir = path.join(__dirname, "../uploads");
+
+const removeOrphanUploads = (oldData, fieldnames, newData) => {
+  if (!fieldnames || fieldnames.size === 0) return;
+  const oldFiles = new Set();
+  const collectFromFields = (obj) => {
+    if (Array.isArray(obj)) {
+      obj.forEach(collectFromFields);
+      return;
+    }
+    if (obj && typeof obj === "object") {
+      for (const [key, value] of Object.entries(obj)) {
+        if (fieldnames.has(key)) {
+          const walk = (v) => {
+            if (typeof v === "string") {
+              const match = v.match(/\/uploads\/([^/?#]+)$/);
+              if (match) oldFiles.add(match[1]);
+            } else if (Array.isArray(v)) {
+              v.forEach(walk);
+            } else if (v && typeof v === "object") {
+              Object.values(v).forEach(walk);
+            }
+          };
+          walk(value);
+        } else {
+          collectFromFields(value);
+        }
+      }
+    }
+  };
+  collectFromFields(oldData);
+
+  const newFiles = new Set();
+  const collectAll = (obj) => {
+    if (typeof obj === "string") {
+      const match = obj.match(/\/uploads\/([^/?#]+)$/);
+      if (match) newFiles.add(match[1]);
+    } else if (Array.isArray(obj)) {
+      obj.forEach(collectAll);
+    } else if (obj && typeof obj === "object") {
+      Object.values(obj).forEach(collectAll);
+    }
+  };
+  collectAll(newData);
+
+  oldFiles.forEach((filename) => {
+    if (newFiles.has(filename)) return;
+    const filePath = path.join(uploadsDir, filename);
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (e) { /* ignore */ }
+    }
+  });
+};
 
 const getDynamicDataModel = (slug) => {
   const safeSlug = slug.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
@@ -384,6 +442,19 @@ exports.updateDynamicSubmission = async (req, res) => {
 
     const structuredData = groupDataBySection(dynamicForm.sections, validatedData);
 
+    const existingRecord = await DynamicData.findOne({
+      _id: recordId,
+      formSlug: dynamicForm.slug,
+      formId: dynamicForm._id,
+      userId: req.user.userId,
+    });
+
+    if (!existingRecord) {
+      return res.status(404).json({ success: false, message: "Submitted data not found" });
+    }
+
+    removeOrphanUploads(existingRecord.data, new Set((req.files || []).map((f) => f.fieldname)), structuredData);
+
     const updatedRecord = await DynamicData.findOneAndUpdate(
       { _id: recordId, formSlug: dynamicForm.slug, formId: dynamicForm._id, userId: req.user.userId },
       {
@@ -393,10 +464,6 @@ exports.updateDynamicSubmission = async (req, res) => {
       },
       { new: true }
     );
-
-    if (!updatedRecord) {
-      return res.status(404).json({ success: false, message: "Submitted data not found" });
-    }
 
     if (relations) {
       await RelationLink.deleteMany({

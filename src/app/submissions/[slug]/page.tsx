@@ -9,6 +9,7 @@ import { ArrowLeft, Edit2, Trash2, Loader2, ChevronDown, ChevronRight, Link2 } f
 import { Relationship } from "../../../types/relationship.types";
 import { relationshipService } from "../../../services/relationship.service";
 import ManageRelationsModal from "../../../components/relationships/ManageRelationsModal";
+import FileDisplay from "../../../components/common/FileDisplay";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 
 type SubmissionRow = {
@@ -193,15 +194,16 @@ function SubmissionListPageContent() {
                         <td className="px-4 py-3 text-gray-700">
                           {(() => {
                             const flat = flattenData(row.data);
-                            return Object.entries(flat)
-                              .slice(0, 3)
-                              .map(([fk, fv]) => {
-                                const displayVal = Array.isArray(fv) 
-                                  ? fv.map(item => String(item)).join(", ")
-                                  : String(fv);
-                                return `${fk}: ${displayVal}`;
-                              })
-                              .join(" | ");
+                            return (
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                {Object.entries(flat).slice(0, 3).map(([fk, fv]) => (
+                                  <span key={fk} className="inline-flex items-center gap-1.5">
+                                    <span className="font-mono text-[10px] text-gray-400">{fk}:</span>
+                                    <FileDisplay value={fv} compact />
+                                  </span>
+                                ))}
+                              </div>
+                            );
                           })()}
                         </td>
                         <td className="px-4 py-3 text-gray-500">
@@ -253,8 +255,13 @@ function SubmissionListPageContent() {
                                     relData.length > 0 ? (
                                       <div className="space-y-2">
                                         {relData.map((item: any, i: number) => (
-                                          <div key={i} className="text-[10px] text-gray-600 font-mono bg-gray-50 rounded-lg p-2">
-                                            {JSON.stringify(item.data || item).slice(0, 200)}
+                                          <div key={i} className="bg-gray-50 rounded-lg p-2 space-y-1">
+                                            {Object.entries(flattenData(item.data || item)).map(([fk, fv]) => (
+                                              <div key={fk} className="flex items-start gap-2">
+                                                <span className="text-[9px] font-mono text-gray-400 shrink-0 mt-0.5">{fk}:</span>
+                                                <FileDisplay value={fv} compact />
+                                              </div>
+                                            ))}
                                           </div>
                                         ))}
                                       </div>
@@ -262,8 +269,13 @@ function SubmissionListPageContent() {
                                       <p className="text-[10px] text-gray-400 italic">No related records</p>
                                     )
                                   ) : (
-                                    <div className="text-[10px] text-gray-600 font-mono bg-gray-50 rounded-lg p-2">
-                                      {JSON.stringify(relData?.data || relData).slice(0, 200)}
+                                    <div className="bg-gray-50 rounded-lg p-2 space-y-1">
+                                      {Object.entries(flattenData(relData?.data || relData)).map(([fk, fv]) => (
+                                        <div key={fk} className="flex items-start gap-2">
+                                          <span className="text-[9px] font-mono text-gray-400 shrink-0 mt-0.5">{fk}:</span>
+                                          <FileDisplay value={fv} compact />
+                                        </div>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
@@ -293,18 +305,19 @@ function SubmissionListPageContent() {
                     </div>
                   </div>
                   
-                  <div className="text-xs text-gray-700 bg-gray-50 rounded-lg p-3 truncate">
+                  <div className="text-xs text-gray-700 bg-gray-50 rounded-lg p-3">
                     {(() => {
                       const flat = flattenData(row.data);
-                      return Object.entries(flat)
-                        .slice(0, 2)
-                        .map(([fk, fv]) => {
-                          const displayVal = Array.isArray(fv) 
-                            ? fv.map(item => String(item)).join(", ")
-                            : String(fv);
-                          return `${fk}: ${displayVal}`;
-                        })
-                        .join(" | ");
+                      return (
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          {Object.entries(flat).slice(0, 2).map(([fk, fv]) => (
+                            <span key={fk} className="inline-flex items-center gap-1.5">
+                              <span className="font-mono text-[10px] text-gray-400">{fk}:</span>
+                              <FileDisplay value={fv} compact />
+                            </span>
+                          ))}
+                        </div>
+                      );
                     })()}
                   </div>
 

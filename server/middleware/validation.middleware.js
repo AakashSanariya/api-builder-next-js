@@ -60,19 +60,23 @@ const dynamicValidation = async (req, res, next) => {
       } else if (typeof value === "string" && (value.startsWith("{") || value.startsWith("["))) {
         try { data[name] = JSON.parse(value); } catch (e) {}
       }
+
+      // 3. Ensure file fields are always arrays of URLs
+      if (type === "file" && value !== undefined && !Array.isArray(value)) {
+        data[name] = [value];
+      }
     });
 
     if (req.files) {
       req.files.forEach((file) => {
         const url = `${req.protocol}://${req.get("host")}/uploads/${file.filename}`;
-        if (data[file.fieldname]) {
-          if (!Array.isArray(data[file.fieldname])) {
-            data[file.fieldname] = [data[file.fieldname]];
-          }
-          data[file.fieldname].push(url);
-        } else {
-          data[file.fieldname] = url;
+        if (!Array.isArray(data[file.fieldname])) {
+          data[file.fieldname] =
+            data[file.fieldname] !== undefined && data[file.fieldname] !== null && data[file.fieldname] !== ""
+              ? [data[file.fieldname]]
+              : [];
         }
+        data[file.fieldname].push(url);
       });
     }
 
