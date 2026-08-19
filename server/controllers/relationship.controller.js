@@ -161,6 +161,28 @@ exports.linkRecords = async (req, res) => {
       return res.status(400).json({ success: false, message: "Form IDs do not match the relationship" });
     }
 
+    const sourceFormIdObj = new mongoose.Types.ObjectId(String(sourceFormId));
+    const targetFormIdObj = new mongoose.Types.ObjectId(String(targetFormId));
+    const [sourceForm, targetForm] = await Promise.all([
+      Form.findOne({ _id: sourceFormIdObj }),
+      Form.findOne({ _id: targetFormIdObj }),
+    ]);
+    if (!sourceForm) return res.status(404).json({ success: false, message: "Source form not found" });
+    if (!targetForm) return res.status(404).json({ success: false, message: "Target form not found" });
+
+    const SourceModel = getDynamicDataModel(sourceForm.slug);
+    const TargetModel = getDynamicDataModel(targetForm.slug);
+    const [sourceRecord, targetRecord] = await Promise.all([
+      SourceModel.findById(sourceRecordId),
+      TargetModel.findById(targetRecordId),
+    ]);
+    if (!sourceRecord) {
+      return res.status(400).json({ success: false, message: "Source record does not belong to the source form" });
+    }
+    if (!targetRecord) {
+      return res.status(400).json({ success: false, message: "Target record does not belong to the target form" });
+    }
+
     const existing = await RelationLink.findOne({
       sourceFormId,
       sourceRecordId,

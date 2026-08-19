@@ -7,9 +7,10 @@ import { formService } from "../../../services/form.service";
 import { relationshipService } from "../../../services/relationship.service";
 import { FormModel } from "../../../types/form.types";
 import { Relationship, RelationshipType } from "../../../types/relationship.types";
-import { Loader2, ArrowLeft, Copy, Check, Terminal, Globe, Code, Box, Info, Lock, Braces, FileJson, BookOpen, GitBranch, ArrowRight } from "lucide-react";
+import { Loader2, ArrowLeft, Copy, Check, Terminal, Globe, Code, Box, Info, Lock, Braces, FileJson, BookOpen, GitBranch, ArrowRight, Download } from "lucide-react";
 import Button from "../../../components/common/Button";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
+import { downloadOpenApiSpec } from "../../../utils/openapi";
 
 const TYPE_BADGES: Record<RelationshipType, { label: string; color: string }> = {
   "one-to-one": { label: "1:1", color: "text-blue-600 bg-blue-50 border-blue-100" },
@@ -401,9 +402,18 @@ function ApiDocsPageContent() {
           </motion.div>
 
           {/* API Type Toggle */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3 flex-wrap">
             <TabButton type="rest" label="REST API" icon={<Globe size={14} />} />
             <TabButton type="graphql" label="GraphQL" icon={<Braces size={14} />} />
+            <span className="w-px h-8 bg-gray-100 self-center mx-1 hidden sm:block" />
+            <button
+              onClick={() => form && downloadOpenApiSpec(form, relationships)}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-100 hover:border-emerald-600 shadow-sm hover:shadow-lg hover:shadow-emerald-100"
+              title="Download OpenAPI 3.0 specification"
+            >
+              <Download size={14} />
+              <span className="hidden sm:inline">OpenAPI Spec</span>
+            </button>
           </motion.div>
         </header>
 

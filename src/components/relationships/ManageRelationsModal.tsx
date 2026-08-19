@@ -105,13 +105,13 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
 
   const handleLink = async (rel: Relationship, linkedRecordId: string) => {
     setError("");
-    const side = getFormSide(rel);
+    const isCurrentSource = getFormSide(rel) === "source";
     try {
       const res = await relationshipService.linkRecords({
-        sourceFormId: getFormId(rel, side === "source" ? "sourceFormId" : "targetFormId"),
-        sourceRecordId: side === "source" ? recordId : linkedRecordId,
-        targetFormId: getFormId(rel, side === "source" ? "targetFormId" : "sourceFormId"),
-        targetRecordId: side === "source" ? linkedRecordId : recordId,
+        sourceFormId: getFormId(rel, "sourceFormId"),
+        sourceRecordId: isCurrentSource ? recordId : linkedRecordId,
+        targetFormId: getFormId(rel, "targetFormId"),
+        targetRecordId: isCurrentSource ? linkedRecordId : recordId,
         relationshipId: rel._id,
       });
       if (res.success) {

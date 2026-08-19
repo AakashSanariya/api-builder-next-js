@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formService } from "../../../services/form.service";
 import Button from "../../../components/common/Button";
@@ -78,22 +78,22 @@ function SubmissionListPageContent() {
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const res = await formService.listDynamicSubmissions(slug as string, 1, 20);
-        if (res.success && res.data) {
-          setRows(res.data);
-        } else {
-          setError(res.message || "Could not load submissions.");
-        }
-      } catch (err: any) {
-        setError(err.message || "Could not load submissions.");
-      } finally {
-        setLoading(false);
+  const loadData = useCallback(async () => {
+    try {
+      const res = await formService.listDynamicSubmissions(slug as string, 1, 20);
+      if (res.success && res.data) {
+        setRows(res.data);
+      } else {
+        setError(res.message || "Could not load submissions.");
       }
-    };
+    } catch (err: any) {
+      setError(err.message || "Could not load submissions.");
+    } finally {
+      setLoading(false);
+    }
+  }, [slug]);
 
+  useEffect(() => {
     if (slug) loadData();
 
     const loadRels = async () => {
@@ -103,7 +103,7 @@ function SubmissionListPageContent() {
       } catch { /* ignore */ }
     };
     loadRels();
-  }, [slug]);
+  }, [slug, loadData]);
 
   if (loading) {
     return (
@@ -142,8 +142,7 @@ function SubmissionListPageContent() {
           slug={slug as string}
           relationships={relationships}
           onUpdated={() => {
-            setRelModalRecordId(null);
-            window.location.reload();
+            loadData();
           }}
         />
 
