@@ -11,6 +11,8 @@ router.use(authenticate);
 // Dynamic API Core
 router.post("/api/:slug", upload.any(), dynamicValidation, formController.handleDynamicSubmission);
 router.get("/api/:slug/data", formController.listDynamicSubmissions);
+router.post("/api/:slug/data/bulk-delete", formController.bulkDeleteSubmissions);
+router.get("/api/:slug/data/export", formController.exportSubmissions);
 router.get("/api/:slug/data/:recordId", formController.getDynamicSubmission);
 router.put("/api/:slug/data/:recordId", upload.any(), dynamicValidation, formController.updateDynamicSubmission);
 router.delete("/api/:slug/data/:recordId", formController.deleteDynamicSubmission);

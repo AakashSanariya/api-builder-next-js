@@ -4,6 +4,7 @@ const path = require("path");
 const Form = require("../models/form.model");
 const Relationship = require("../models/relationship.model");
 const RelationLink = require("../models/relationLink.model");
+const getDynamicDataModel = require("../utils/dynamicData.model");
 
 const uploadsDir = path.join(__dirname, "../uploads");
 
@@ -59,30 +60,6 @@ const removeOrphanUploads = (oldData, fieldnames, newData) => {
       } catch (e) { /* ignore */ }
     }
   });
-};
-
-const getDynamicDataModel = (slug) => {
-  const safeSlug = slug.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
-  const modelName = `${safeSlug}_data_model`;
-  const collectionName = `${safeSlug}_data`;
-
-  if (mongoose.models[modelName]) {
-    return mongoose.models[modelName];
-  }
-
-  const DynamicDataSchema = new mongoose.Schema(
-    {
-      formSlug: { type: String, required: true, index: true },
-      formId: { type: mongoose.Schema.Types.ObjectId, ref: "Form", required: true },
-      data: { type: mongoose.Schema.Types.Mixed, required: true },
-      ip: { type: String },
-      userAgent: { type: String },
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    },
-    { timestamps: true, strict: false, collection: collectionName }
-  );
-
-  return mongoose.model(modelName, DynamicDataSchema);
 };
 
 const slugifyRel = (text) => {
@@ -339,6 +316,121 @@ const groupDataBySection = (sections, validatedData) => {
   return grouped;
 };
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const TEXT_FILTER_TYPES = new Set(["input", "textarea"]);
+const SORTABLE_META_FIELDS = new Set(["createdAt", "updatedAt"]);
+
+// Map every schema field name -> its real path inside data ({ section_x: { field } })
+// Falls back to flat data.<name> for legacy forms stored without sections.
+const getFieldPathMap = (form) => {
+  const map = {};
+  const sections = Array.isArray(form.sections) ? form.sections : [];
+
+  if (sections.length > 0) {
+    sections.forEach((section) => {
+      const sectionSlug = section.title ? slugify(section.title) : section.id;
+      const dbKey = `section_${sectionSlug}`;
+      (section.fields || []).forEach((field) => {
+        map[field.name] = {
+          path: `data.${dbKey}.${field.name}`,
+          type: field.type,
+          multiple: !!field.multiple,
+        };
+      });
+    });
+  } else {
+    (Array.isArray(form.fields) ? form.fields : []).forEach((field) => {
+      map[field.name] = {
+        path: `data.${field.name}`,
+        type: field.type,
+        multiple: !!field.multiple,
+      };
+    });
+  }
+  return map;
+};
+
+// Builds the Mongo query for listing/exporting records from whitelisted,
+// schema-resolved query params. Shared by list + CSV export endpoints.
+const buildListFilter = (form, req) => {
+  const filter = { formSlug: form.slug, userId: req.user.userId };
+  const fieldMap = getFieldPathMap(form);
+  const q = req.query;
+
+  // Global search: case-insensitive "contains" across every field path (+ _id)
+  if (typeof q.search === "string" && q.search.trim() !== "") {
+    const rx = new RegExp(escapeRegex(q.search.trim()), "i");
+    const or = Object.values(fieldMap).map((meta) => ({ [meta.path]: rx }));
+    if (/^[0-9a-fA-F]{24}$/.test(q.search.trim())) {
+      or.push({ _id: new mongoose.Types.ObjectId(q.search.trim()) });
+    }
+    filter.$or = or;
+  }
+
+  const conditions = [];
+
+  // Per-field exact/contains filters: f_<fieldName>=value
+  Object.entries(fieldMap).forEach(([name, meta]) => {
+    const raw = q[`f_${name}`];
+    if (typeof raw !== "string" || raw.trim() === "") return;
+    const value = raw.trim();
+    if (TEXT_FILTER_TYPES.has(meta.type)) {
+      conditions.push({ [meta.path]: new RegExp(escapeRegex(value), "i") });
+    } else {
+      // Exact match also hits array fields (matches if ANY element equals value)
+      conditions.push({ [meta.path]: value });
+    }
+  });
+
+  // Numeric range filters: numMin_<fieldName> / numMax_<fieldName>
+  Object.entries(fieldMap).forEach(([name, meta]) => {
+    const minRaw = q[`numMin_${name}`];
+    const maxRaw = q[`numMax_${name}`];
+    if (minRaw === undefined && maxRaw === undefined) return;
+    const min = parseFloat(minRaw);
+    const max = parseFloat(maxRaw);
+    const range = {};
+    if (!Number.isNaN(min)) range.$gte = min;
+    if (!Number.isNaN(max)) range.$lte = max;
+    if (Object.keys(range).length > 0) conditions.push({ [meta.path]: range });
+  });
+
+  // Created-date range: createdFrom / createdTo (date-only strings become inclusive days)
+  const createdRange = {};
+  if (q.createdFrom) {
+    const from = new Date(q.createdFrom);
+    if (!Number.isNaN(from.getTime())) createdRange.$gte = from;
+  }
+  if (q.createdTo) {
+    const to = new Date(q.createdTo);
+    if (!Number.isNaN(to.getTime())) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(q.createdTo.trim())) {
+        to.setHours(23, 59, 59, 999);
+      }
+      createdRange.$lte = to;
+    }
+  }
+  if (Object.keys(createdRange).length > 0) conditions.push({ createdAt: createdRange });
+
+  if (conditions.length > 0) filter.$and = conditions;
+  return filter;
+};
+
+const buildListSort = (form, req) => {
+  const sortField = typeof req.query.sortField === "string" ? req.query.sortField : "createdAt";
+  const order = req.query.sortOrder === "asc" ? 1 : -1;
+
+  let path = "createdAt";
+  if (SORTABLE_META_FIELDS.has(sortField)) {
+    path = sortField;
+  } else {
+    const meta = getFieldPathMap(form)[sortField];
+    if (meta) path = meta.path;
+  }
+  return { [path]: order };
+};
+
 // POST /api/forms/:slug (Dynamic API Core)
 exports.handleDynamicSubmission = async (req, res) => {
   try {
@@ -373,11 +465,13 @@ exports.handleDynamicSubmission = async (req, res) => {
 };
 
 // GET /api/:slug/data (List submitted records scoped to user)
+// Supports: page, limit, search, sortField, sortOrder,
+//           f_<field>, numMin_<field>, numMax_<field>, createdFrom, createdTo
 exports.listDynamicSubmissions = async (req, res) => {
   try {
     const { slug } = req.params;
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 20;
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
     const skip = (page - 1) * limit;
     const form = await Form.findOne({ slug });
 
@@ -386,9 +480,11 @@ exports.listDynamicSubmissions = async (req, res) => {
     }
 
     const DynamicData = getDynamicDataModel(slug);
-    const filter = { formSlug: slug, userId: req.user.userId };
+    const filter = buildListFilter(form, req);
+    const sort = buildListSort(form, req);
+
     const [rows, total] = await Promise.all([
-      DynamicData.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      DynamicData.find(filter).sort(sort).skip(skip).limit(limit).lean(),
       DynamicData.countDocuments(filter),
     ]);
 
@@ -523,6 +619,167 @@ exports.deleteDynamicSubmission = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// POST /api/:slug/data/bulk-delete { ids: string[] } (Delete many records, scoped to user)
+exports.bulkDeleteSubmissions = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { ids } = req.body || {};
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: "Provide a non-empty 'ids' array" });
+    }
+    if (ids.length > 500) {
+      return res.status(400).json({ success: false, message: "Maximum 500 records can be deleted per request" });
+    }
+
+    const objectIds = [];
+    for (const id of ids) {
+      if (typeof id !== "string" || !/^[0-9a-fA-F]{24}$/.test(id)) {
+        return res.status(400).json({ success: false, message: `Invalid record id: ${id}` });
+      }
+      objectIds.push(new mongoose.Types.ObjectId(id));
+    }
+
+    const form = await Form.findOne({ slug });
+    if (!form) {
+      return res.status(404).json({ success: false, message: "Form not found" });
+    }
+
+    const DynamicData = getDynamicDataModel(slug);
+    const result = await DynamicData.deleteMany({
+      _id: { $in: objectIds },
+      formSlug: slug,
+      userId: req.user.userId,
+    });
+
+    // Cascade relation links, mirroring single-record delete
+    await RelationLink.deleteMany({
+      $or: [
+        { sourceRecordId: { $in: objectIds }, userId: req.user.userId },
+        { targetRecordId: { $in: objectIds }, userId: req.user.userId },
+      ],
+    });
+
+    res.json({
+      success: true,
+      message: `${result.deletedCount} record(s) deleted`,
+      deletedCount: result.deletedCount,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// GET /api/:slug/data/export?format=csv&ids=a,b&<same filter params as list>
+// Exports records as CSV. `ids` narrows to specific records; otherwise the
+// current search/filter/sort params are honored. Relation keys are excluded.
+exports.exportSubmissions = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const MAX_EXPORT_ROWS = 10000;
+
+    const form = await Form.findOne({ slug });
+    if (!form) {
+      return res.status(404).json({ success: false, message: "Form not found" });
+    }
+
+    const DynamicData = getDynamicDataModel(slug);
+    const filter = buildListFilter(form, req);
+
+    // Optional explicit record selection (comma-separated ids query param)
+    if (typeof req.query.ids === "string" && req.query.ids.trim() !== "") {
+      const rawIds = req.query.ids.split(",").map((s) => s.trim()).filter(Boolean).slice(0, MAX_EXPORT_ROWS);
+      const objectIds = [];
+      for (const id of rawIds) {
+        if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+          return res.status(400).json({ success: false, message: `Invalid record id: ${id}` });
+        }
+        objectIds.push(new mongoose.Types.ObjectId(id));
+      }
+      if (objectIds.length > 0) {
+        filter._id = { $in: objectIds };
+      }
+    }
+
+    const sort = buildListSort(form, req);
+    const rows = await DynamicData.find(filter).sort(sort).limit(MAX_EXPORT_ROWS).lean();
+
+    // Column layout mirrors getFieldPathMap but keeps labels for headers
+    const sections = Array.isArray(form.sections) ? form.sections : [];
+    const exportColumns = [];
+    if (sections.length > 0) {
+      sections.forEach((section) => {
+        (section.fields || []).forEach((field) => {
+          if (field.type === "button") return;
+          exportColumns.push({
+            key: field.name,
+            label: field.label || field.name,
+            sectionKey: `section_${section.title ? slugify(section.title) : section.id}`,
+          });
+        });
+      });
+    } else {
+      (Array.isArray(form.fields) ? form.fields : []).forEach((field) => {
+        if (field.type === "button") return;
+        exportColumns.push({ key: field.name, label: field.label || field.name });
+      });
+    }
+
+    const csvEscape = (val) => {
+      const str = String(val);
+      return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+    };
+
+    const cellValue = (v) => {
+      if (v === undefined || v === null) return "";
+      if (Array.isArray(v)) {
+        const allScalar = v.every(
+          (item) => item === null || ["string", "number", "boolean"].includes(typeof item)
+        );
+        return allScalar ? v.join(", ") : JSON.stringify(v);
+      }
+      if (typeof v === "object") return JSON.stringify(v);
+      if (typeof v === "boolean") return v ? "true" : "false";
+      return String(v);
+    };
+
+    const headerCells = ["Record ID", ...exportColumns.map((c) => c.label), "Created At", "Updated At"];
+    const lines = [headerCells.map(csvEscape).join(",")];
+
+    rows.forEach((row) => {
+      const cells = [
+        String(row._id),
+        ...exportColumns.map((col) => {
+          let value;
+          if (col.sectionKey) {
+            const sectionData = row.data?.[col.sectionKey];
+            if (sectionData && typeof sectionData === "object" && col.key in sectionData) {
+              value = sectionData[col.key];
+            }
+          }
+          if (value === undefined) value = row.data?.[col.key]; // legacy flat fallback
+          return csvEscape(cellValue(value));
+        }),
+        row.createdAt ? new Date(row.createdAt).toISOString() : "",
+        row.updatedAt ? new Date(row.updatedAt).toISOString() : "",
+      ];
+      lines.push(cells.join(","));
+    });
+
+    // UTF-8 BOM keeps Excel happy with non-ASCII characters
+    const csv = "\uFEFF" + lines.join("\r\n");
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${slug}-submissions-${stamp}.csv"`);
+    res.setHeader("X-Row-Count", String(rows.length));
+    return res.send(csv);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // DELETE /forms/:id (Delete entire Form Schema + all its dynamic data)
 exports.deleteForm = async (req, res) => {
   try {

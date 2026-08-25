@@ -21,3 +21,33 @@ export interface ApiResponse<T> {
   message?: string;
   errors?: Record<string, string>;
 }
+
+export interface SubmissionRecord {
+  _id: string;
+  data: Record<string, any>;
+  ip?: string;
+  userAgent?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export interface SubmissionListResponse extends ApiResponse<SubmissionRecord[]> {
+  pagination?: Pagination;
+}
+
+export interface SubmissionListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
+  /** Query keys already namespaced: f_<name>, numMin_<name>, numMax_<name>, createdFrom, createdTo */
+  filters?: Record<string, string>;
+}

@@ -26,7 +26,12 @@ export const apiRequest = async <T>(
     headers: { ...headers, ...(options.headers as Record<string, string>) },
   });
 
-  const data = await response.json();
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    // Response was not JSON (e.g. HTML error page from a wrong route)
+  }
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -35,7 +40,9 @@ export const apiRequest = async <T>(
         window.location.href = "/login";
       }
     }
-    throw new Error(data.message || "An error occurred during the API request");
+    throw new Error(
+      data?.message || `Request failed (${response.status}) at ${endpoint}`
+    );
   }
 
   return data;

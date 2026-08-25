@@ -69,12 +69,14 @@ mongoose
     app.use("/graphql", ...graphqlMiddleware);
 
     // Mount REST routes AFTER GraphQL to prevent /:id from catching /graphql
+    const analyticsRoutes = require("./routes/analytics.routes");
     const formRoutes = require("./routes/form.routes");
     const authRoutes = require("./routes/auth.routes");
     const relationshipRoutes = require("./routes/relationship.routes");
 
     app.use("/auth", authRoutes);
     app.use("/", relationshipRoutes);
+    app.use("/api/analytics", analyticsRoutes);
     app.use("/", formRoutes);
 
     httpServer.listen(PORT, () => {

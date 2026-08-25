@@ -28,7 +28,7 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await formService.listDynamicSubmissions(formSlug, 1, 200);
+        const res = await formService.listDynamicSubmissions(formSlug, { page: 1, limit: 200 });
         if (res.success && res.data) {
           setRecords(res.data.filter((r: any) => !excludeIds.includes(r._id)));
         }
