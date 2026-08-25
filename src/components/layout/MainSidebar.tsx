@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: GitBranch, label: "Relationships", path: "/relationships" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Layers, label: "Integrations", path: "/integrations", comingSoon: true },
-  { icon: Settings, label: "System Settings", path: "/settings", comingSoon: true },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 const MainSidebar = () => {
