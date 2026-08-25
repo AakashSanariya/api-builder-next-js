@@ -16,12 +16,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white">
+      <div className="flex h-screen items-center justify-center bg-card">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
         >
-          <Loader2 className="text-indigo-600 w-9 h-9 md:w-12 md:h-12" />
+          <Loader2 className="text-primary w-9 h-9 md:w-12 md:h-12" />
         </motion.div>
       </div>
     );

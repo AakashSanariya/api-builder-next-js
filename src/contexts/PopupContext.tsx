@@ -67,23 +67,23 @@ export const PopupProvider = ({ children }: { children: ReactNode }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
               onClick={handleCancel}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-[0_40px_100px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden"
+              className="relative w-full max-w-md bg-card rounded-3xl shadow-[0_40px_100px_rgba(0,0,0,0.1)] border border-border overflow-hidden"
             >
               <div className="p-8">
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-2xl shrink-0 ${options.type === 'confirm' ? 'bg-amber-50 text-amber-500' : 'bg-indigo-50 text-indigo-500'}`}>
+                  <div className={`p-3 rounded-2xl shrink-0 ${options.type === 'confirm' ? 'bg-amber-50 text-amber-500' : 'bg-primary/10 text-primary'}`}>
                     {options.type === 'confirm' ? <AlertTriangle size={24} /> : <Info size={24} />}
                   </div>
                   <div className="flex-1 pt-1">
-                    <h3 className="text-xl font-black text-gray-900 tracking-tight mb-2">{options.title}</h3>
-                    <p className="text-sm text-gray-500 font-medium leading-relaxed">{options.message}</p>
+                    <h3 className="text-xl font-black text-foreground tracking-tight mb-2">{options.title}</h3>
+                    <p className="text-sm text-muted-foreground font-medium leading-relaxed">{options.message}</p>
                     
                     {(options.type === "prompt" || options.validationValue) && (
                       <div className="mt-6">
@@ -97,10 +97,10 @@ export const PopupProvider = ({ children }: { children: ReactNode }) => {
                           value={inputValue}
                           onChange={(e) => setInputValue(e.target.value)}
                           placeholder={options.validationValue ? `Enter "${options.validationValue}"` : ""}
-                          className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:ring-2 outline-none transition-all
+                          className={`w-full bg-muted border rounded-xl px-4 py-3 text-sm focus:ring-2 outline-none transition-all
                             ${options.validationValue 
                                 ? 'border-red-100 focus:ring-red-500/10 focus:border-red-500 font-bold' 
-                                : 'border-gray-200 focus:ring-indigo-500/20 focus:border-indigo-500'}`}
+                                : 'border-border focus:ring-primary/20 focus:border-primary'}`}
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && (!options.validationValue || inputValue === options.validationValue)) handleConfirm();
@@ -112,9 +112,9 @@ export const PopupProvider = ({ children }: { children: ReactNode }) => {
                   </div>
                 </div>
               </div>
-              <div className="p-6 bg-gray-50/80 border-t border-gray-100 flex items-center justify-end gap-3">
+              <div className="p-6 bg-muted/80 border-t border-border flex items-center justify-end gap-3">
                 {options.type !== "alert" && (
-                  <Button variant="outline" size="sm" onClick={handleCancel} className="bg-white border-gray-200">
+                  <Button variant="outline" size="sm" onClick={handleCancel} className="bg-card border-border">
                     {options.cancelText}
                   </Button>
                 )}

@@ -39,8 +39,8 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-50/50 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="fixed bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[120px] pointer-events-none" />
 
       <motion.div
@@ -48,15 +48,15 @@ function LoginForm() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.05)] border border-gray-50 overflow-hidden">
-          <div className="px-8 md:px-12 pt-12 md:pt-16 pb-8 md:pb-10 text-center border-b border-gray-50 bg-gray-50/20">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-[1.25rem] shadow-xl shadow-indigo-100 mb-6">
-              <Zap size={32} fill="white" className="text-white" />
+        <div className="bg-card rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.05)] border border-border overflow-hidden">
+          <div className="px-8 md:px-12 pt-12 md:pt-16 pb-8 md:pb-10 text-center border-b border-border bg-muted/20">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-[1.25rem] shadow-xl shadow-primary/20 mb-6">
+              <Zap size={32} fill="white" className="text-primary-foreground" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900 font-display tracking-tight mb-2">
+            <h1 className="text-2xl md:text-3xl font-black text-foreground font-display tracking-tight mb-2">
               Welcome Back
             </h1>
-            <p className="text-gray-400 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.2em]">
+            <p className="text-muted-foreground font-bold uppercase text-[9px] md:text-[10px] tracking-[0.2em]">
               Sign in to your API Builder account
             </p>
           </div>
@@ -89,7 +89,7 @@ function LoginForm() {
               )}
 
               <div className="space-y-2">
-                <label className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-[0.15em]">
+                <label className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                   Email Address
                 </label>
                 <input
@@ -98,12 +98,12 @@ function LoginForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full bg-muted border border-border rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/20 focus:border-primary outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-[0.15em]">
+                <label className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                   Password
                 </label>
                 <div className="relative">
@@ -113,12 +113,12 @@ function LoginForm() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     required
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 pr-12 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                    className="w-full bg-muted border border-border rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 pr-12 text-sm font-bold text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/20 focus:border-primary outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -128,7 +128,7 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 md:py-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-2"
+                className="w-full py-3 md:py-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -142,11 +142,11 @@ function LoginForm() {
             </form>
 
             <div className="mt-8 md:mt-10 text-center">
-              <p className="text-[10px] md:text-xs text-gray-400 font-bold">
+              <p className="text-[10px] md:text-xs text-muted-foreground font-bold">
                 Don&apos;t have an account?{" "}
                 <button
                   onClick={() => router.push("/signup")}
-                  className="text-indigo-600 hover:text-indigo-800 underline underline-offset-4 font-black transition-colors"
+                  className="text-primary hover:text-primary/80 underline underline-offset-4 font-black transition-colors"
                 >
                   Create Account
                 </button>
@@ -154,8 +154,8 @@ function LoginForm() {
             </div>
           </div>
 
-          <footer className="px-8 md:px-12 py-4 md:py-6 bg-gray-50/50 border-t border-gray-50 text-center">
-            <p className="text-[8px] md:text-[9px] text-gray-400 font-black uppercase tracking-[0.3em]">
+          <footer className="px-8 md:px-12 py-4 md:py-6 bg-muted/50 border-t border-border text-center">
+            <p className="text-[8px] md:text-[9px] text-muted-foreground font-black uppercase tracking-[0.3em]">
               API Builder Engine
             </p>
           </footer>
@@ -168,8 +168,8 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-indigo-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-primary" />
       </div>
     }>
       <LoginForm />

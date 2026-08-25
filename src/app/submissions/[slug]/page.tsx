@@ -384,10 +384,10 @@ function SubmissionListPageContent() {
   };
 
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sortField !== columnKey) return <ChevronsUpDown size={12} className="text-gray-300" />;
+    if (sortField !== columnKey) return <ChevronsUpDown size={12} className="text-muted-foreground/50" />;
     return sortOrder === "asc"
-      ? <ArrowUp size={12} className="text-indigo-600" />
-      : <ArrowDown size={12} className="text-indigo-600" />;
+      ? <ArrowUp size={12} className="text-primary" />
+      : <ArrowDown size={12} className="text-primary" />;
   };
 
   /* ---------------- Related records helpers (preserved) ---------------- */
@@ -418,14 +418,14 @@ function SubmissionListPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="animate-spin text-indigo-600 w-8 h-8 md:w-10 md:h-10" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-primary w-8 h-8 md:w-10 md:h-10" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
         <Button variant="outline" size="sm" onClick={() => router.push("/forms")} className="text-xs md:text-sm">
           <ArrowLeft size={14} className="mr-2" />
@@ -435,8 +435,8 @@ function SubmissionListPageContent() {
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900">Submitted Data: <span className="text-indigo-600">{slug}</span></h1>
-            <p className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2">Each row can be opened in edit mode.</p>
+            <h1 className="text-2xl md:text-3xl font-black text-foreground">Submitted Data: <span className="text-primary">{slug}</span></h1>
+            <p className="text-muted-foreground text-xs md:text-sm mt-1 md:mt-2">Each row can be opened in edit mode.</p>
           </div>
         </div>
 
@@ -449,17 +449,17 @@ function SubmissionListPageContent() {
         {/* Toolbar: search + filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 relative">
           <div className="relative flex-1 max-w-md">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search records..."
-              className="w-full min-h-11 pl-11 pr-9 rounded-xl border-2 border-gray-100 bg-white text-sm font-medium text-gray-700 outline-none focus:border-indigo-600 focus:shadow-[0_10px_30px_rgb(79,70,229,0.08)] transition-all placeholder:text-gray-300"
+              className="w-full min-h-11 pl-11 pr-9 rounded-xl border-2 border-border bg-card text-sm font-medium text-foreground outline-none focus:border-primary focus:shadow-[0_10px_30px_rgb(79,70,229,0.08)] transition-all placeholder:text-muted-foreground"
             />
             {searchInput && (
               <button
                 onClick={() => setSearchInput("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-lg text-gray-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-lg text-muted-foreground"
               >
                 <X size={14} />
               </button>
@@ -470,7 +470,7 @@ function SubmissionListPageContent() {
             <SlidersHorizontal size={14} className="mr-2" />
             Filters
             {activeFilterCount > 0 && (
-              <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-black ${activeFilterCount > 0 ? "bg-white/25" : "bg-indigo-50 text-indigo-600"}`}>
+              <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-black ${activeFilterCount > 0 ? "bg-white/25" : "bg-primary/10 text-primary"}`}>
                 {activeFilterCount}
               </span>
             )}
@@ -489,16 +489,16 @@ function SubmissionListPageContent() {
             {showExportMenu && selectedIds.size > 0 && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowExportMenu(false)} />
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-1.5 z-40">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-1.5 z-40">
                   <button
                     onClick={() => handleExport("selected")}
-                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all"
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-foreground hover:bg-primary/10 hover:text-primary transition-all"
                   >
                     Selected records only ({selectedIds.size})
                   </button>
                   <button
                     onClick={() => handleExport("filtered")}
-                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all"
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-foreground hover:bg-primary/10 hover:text-primary transition-all"
                   >
                     Current filtered view{totalRecords > 0 ? ` (${totalRecords})` : ""}
                   </button>
@@ -510,10 +510,10 @@ function SubmissionListPageContent() {
 
         {/* Filter popover */}
         {showFilters && (
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] p-4 md:p-6 space-y-4">
+          <div className="bg-card border border-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] p-4 md:p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-wider text-gray-400">Filters</p>
-              <button onClick={() => setShowFilters(false)} className="p-1 hover:bg-gray-100 rounded-lg text-gray-400">
+              <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">Filters</p>
+              <button onClick={() => setShowFilters(false)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground">
                 <X size={14} />
               </button>
             </div>
@@ -526,7 +526,7 @@ function SubmissionListPageContent() {
                 if (isExact && col.options && col.options.length > 0) {
                   return (
                     <div key={col.key} className="space-y-1.5">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{col.label}</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{col.label}</label>
                       <select
                         value={draftFilters[`f_${col.key}`] || ""}
                         onChange={(e) =>
@@ -537,7 +537,7 @@ function SubmissionListPageContent() {
                             return next;
                           })
                         }
-                        className="w-full h-11 px-3 rounded-xl border-2 border-gray-100 bg-white text-xs font-medium text-gray-700 outline-none focus:border-indigo-600 transition-all cursor-pointer"
+                        className="w-full h-11 px-3 rounded-xl border-2 border-border bg-card text-xs font-medium text-foreground outline-none focus:border-primary transition-all cursor-pointer"
                       >
                         <option value="">Any</option>
                         {col.options.map((opt) => (
@@ -553,7 +553,7 @@ function SubmissionListPageContent() {
                 if (isNumeric) {
                   return (
                     <div key={col.key} className="space-y-1.5">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{col.label} (min – max)</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{col.label} (min – max)</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
@@ -567,9 +567,9 @@ function SubmissionListPageContent() {
                               return next;
                             })
                           }
-                          className="w-full h-11 px-3 rounded-xl border-2 border-gray-100 bg-white text-xs font-medium text-gray-700 outline-none focus:border-indigo-600 transition-all"
+                          className="w-full h-11 px-3 rounded-xl border-2 border-border bg-card text-xs font-medium text-foreground outline-none focus:border-primary transition-all"
                         />
-                        <span className="text-gray-300 text-xs shrink-0">–</span>
+                        <span className="text-muted-foreground text-xs shrink-0">–</span>
                         <input
                           type="number"
                           placeholder="Max"
@@ -582,7 +582,7 @@ function SubmissionListPageContent() {
                               return next;
                             })
                           }
-                          className="w-full h-11 px-3 rounded-xl border-2 border-gray-100 bg-white text-xs font-medium text-gray-700 outline-none focus:border-indigo-600 transition-all"
+                          className="w-full h-11 px-3 rounded-xl border-2 border-border bg-card text-xs font-medium text-foreground outline-none focus:border-primary transition-all"
                         />
                       </div>
                     </div>
@@ -591,7 +591,7 @@ function SubmissionListPageContent() {
 
                 return (
                   <div key={col.key} className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{col.label}</label>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{col.label}</label>
                     <input
                       value={draftFilters[`f_${col.key}`] || ""}
                       onChange={(e) =>
@@ -603,14 +603,14 @@ function SubmissionListPageContent() {
                         })
                       }
                       placeholder="Contains..."
-                      className="w-full h-11 px-3 rounded-xl border-2 border-gray-100 bg-white text-xs font-medium text-gray-700 outline-none focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                      className="w-full h-11 px-3 rounded-xl border-2 border-border bg-card text-xs font-medium text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground"
                     />
                   </div>
                 );
               })}
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Created From</label>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Created From</label>
                 <input
                   type="date"
                   value={draftFilters["createdFrom"] || ""}
@@ -622,12 +622,12 @@ function SubmissionListPageContent() {
                       return next;
                     })
                   }
-                  className="w-full h-11 px-3 rounded-xl border-2 border-gray-100 bg-white text-xs font-medium text-gray-700 outline-none focus:border-indigo-600 transition-all"
+                  className="w-full h-11 px-3 rounded-xl border-2 border-border bg-card text-xs font-medium text-foreground outline-none focus:border-primary transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Created To</label>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Created To</label>
                 <input
                   type="date"
                   value={draftFilters["createdTo"] || ""}
@@ -639,12 +639,12 @@ function SubmissionListPageContent() {
                       return next;
                     })
                   }
-                  className="w-full h-11 px-3 rounded-xl border-2 border-gray-100 bg-white text-xs font-medium text-gray-700 outline-none focus:border-indigo-600 transition-all"
+                  className="w-full h-11 px-3 rounded-xl border-2 border-border bg-card text-xs font-medium text-foreground outline-none focus:border-primary transition-all"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-50">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
               <Button variant="outline" size="sm" onClick={clearFilters}>Clear All</Button>
               <Button variant="primary" size="sm" onClick={applyFilters}>Apply Filters</Button>
             </div>
@@ -661,10 +661,10 @@ function SubmissionListPageContent() {
                 <button
                   key={key}
                   onClick={() => removeFilterChip(key)}
-                  className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-full pl-3 pr-2 py-1 text-[11px] font-bold hover:bg-indigo-100 transition-all"
+                  className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary rounded-full pl-3 pr-2 py-1 text-[11px] font-bold hover:bg-primary/20 transition-all"
                 >
-                  <span className="text-indigo-400">{meta.label}:</span> {meta.value}
-                  <X size={12} className="text-indigo-400" />
+                  <span className="text-primary/70">{meta.label}:</span> {meta.value}
+                  <X size={12} className="text-primary/70" />
                 </button>
               );
             })}
@@ -683,18 +683,18 @@ function SubmissionListPageContent() {
         />
 
         {!rows.length ? (
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 md:p-8 text-gray-500 text-sm">
+          <div className="bg-card border border-border rounded-2xl p-6 md:p-8 text-muted-foreground text-sm">
             {search || activeFilterCount > 0
               ? "No records match your current search or filters."
               : "No submissions found for this view yet."}
           </div>
         ) : (
           <>
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-muted">
                     <tr>
                       <th className="text-left px-2 py-3 w-8"></th>
                       <th className="text-left px-3 py-3 w-10">
@@ -703,11 +703,11 @@ function SubmissionListPageContent() {
                           type="checkbox"
                           checked={allOnPageSelected}
                           onChange={toggleSelectAll}
-                          className="w-4 h-4 rounded border-gray-300 text-indigo-600 accent-indigo-600 cursor-pointer"
+                          className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
                         />
                       </th>
                       <th className="text-left px-4 py-3 whitespace-nowrap">
-                        <button onClick={() => toggleSort("_id")} className="inline-flex items-center gap-1.5 font-black uppercase text-[10px] tracking-wider text-gray-400 hover:text-gray-600 transition-colors">
+                        <button onClick={() => toggleSort("_id")} className="inline-flex items-center gap-1.5 font-black uppercase text-[10px] tracking-wider text-muted-foreground hover:text-muted-foreground transition-colors">
                           Record ID <SortIcon columnKey="_id" />
                         </button>
                       </th>
@@ -716,18 +716,18 @@ function SubmissionListPageContent() {
                           <button
                             onClick={() => toggleSort(col.key)}
                             title={col.key}
-                            className="inline-flex items-center gap-1.5 font-black uppercase text-[10px] tracking-wider text-gray-400 hover:text-gray-600 transition-colors"
+                            className="inline-flex items-center gap-1.5 font-black uppercase text-[10px] tracking-wider text-muted-foreground hover:text-muted-foreground transition-colors"
                           >
                             {col.label} <SortIcon columnKey={col.key} />
                           </button>
                         </th>
                       ))}
                       <th className="text-left px-4 py-3 whitespace-nowrap">
-                        <button onClick={() => toggleSort("createdAt")} className="inline-flex items-center gap-1.5 font-black uppercase text-[10px] tracking-wider text-gray-400 hover:text-gray-600 transition-colors">
+                        <button onClick={() => toggleSort("createdAt")} className="inline-flex items-center gap-1.5 font-black uppercase text-[10px] tracking-wider text-muted-foreground hover:text-muted-foreground transition-colors">
                           Created <SortIcon columnKey="createdAt" />
                         </button>
                       </th>
-                      <th className="text-left px-4 py-3 font-black uppercase text-[10px] tracking-wider text-gray-400">Action</th>
+                      <th className="text-left px-4 py-3 font-black uppercase text-[10px] tracking-wider text-muted-foreground">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -737,7 +737,7 @@ function SubmissionListPageContent() {
                       const isExpanded = expandedRows.has(row._id);
                       return (
                         <React.Fragment key={row._id}>
-                          <tr className="border-t border-gray-100 align-top">
+                          <tr className="border-t border-border align-top">
                             <td className="px-2 py-3">
                               {hasRelated && (
                                 <button
@@ -749,9 +749,9 @@ function SubmissionListPageContent() {
                                       return next;
                                     });
                                   }}
-                                  className="p-1 hover:bg-gray-100 rounded-lg transition-all"
+                                  className="p-1 hover:bg-muted rounded-lg transition-all"
                                 >
-                                  {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} className="text-gray-400" />}
+                                  {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} className="text-muted-foreground" />}
                                 </button>
                               )}
                             </td>
@@ -761,16 +761,16 @@ function SubmissionListPageContent() {
                                 checked={selectedIds.has(row._id)}
                                 onChange={() => toggleSelectRow(row._id)}
                                 onClick={(e) => e.stopPropagation()}
-                                className="w-4 h-4 rounded border-gray-300 text-indigo-600 accent-indigo-600 cursor-pointer"
+                                className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
                               />
                             </td>
-                            <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{row._id.slice(-8)}</td>
+                            <td className="px-4 py-3 font-mono text-xs text-muted-foreground whitespace-nowrap">{row._id.slice(-8)}</td>
                             {columns.map((col) => (
-                              <td key={col.key} className="px-4 py-3 text-gray-700 max-w-[220px] truncate">
+                              <td key={col.key} className="px-4 py-3 text-foreground max-w-[220px] truncate">
                                 <FileDisplay value={getFieldValue(row, col)} compact />
                               </td>
                             ))}
-                            <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                            <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                               {row.createdAt ? new Date(row.createdAt).toLocaleString() : "-"}
                             </td>
                             <td className="px-4 py-3">
@@ -806,25 +806,25 @@ function SubmissionListPageContent() {
                             </td>
                           </tr>
                           {isExpanded && hasRelated && (
-                            <tr key={`${row._id}-related`} className="bg-indigo-50/30">
+                            <tr key={`${row._id}-related`} className="bg-primary/10">
                               <td colSpan={columns.length + 6} className="px-6 py-4">
                                 <div className="space-y-3">
-                                  <p className="text-[10px] font-black text-indigo-600 uppercase tracking-wider">Related Records</p>
+                                  <p className="text-[10px] font-black text-primary uppercase tracking-wider">Related Records</p>
                                   {relatedEntries.map(([key, relData]) => {
                                     const label = key.replace(/^section_|_rel$/g, '').replace(/_/g, ' ');
                                     return (
-                                    <div key={key} className="bg-white rounded-xl p-4 border border-indigo-100">
-                                      <p className="text-[11px] font-black text-gray-700 mb-2 uppercase">{label}</p>
+                                    <div key={key} className="bg-card rounded-xl p-4 border border-primary/20">
+                                      <p className="text-[11px] font-black text-foreground mb-2 uppercase">{label}</p>
                                       {Array.isArray(relData) ? (
                                         relData.length > 0 ? (
                                           <div className="space-y-2">
                                             {relData.map((item: any, i: number) => (
-                                              <div key={i} className="bg-gray-50 rounded-lg p-2 space-y-1">
+                                              <div key={i} className="bg-muted rounded-lg p-2 space-y-1">
                                                 {Object.entries(item.data || item)
                                                   .filter(([fk]) => !fk.endsWith('_rel'))
                                                   .map(([fk, fv]: [string, any]) => (
                                                   <div key={fk} className="flex items-start gap-2">
-                                                    <span className="text-[9px] font-mono text-gray-400 shrink-0 mt-0.5">{fk}:</span>
+                                                    <span className="text-[9px] font-mono text-muted-foreground shrink-0 mt-0.5">{fk}:</span>
                                                     <FileDisplay value={fv} compact />
                                                   </div>
                                                 ))}
@@ -832,15 +832,15 @@ function SubmissionListPageContent() {
                                             ))}
                                           </div>
                                         ) : (
-                                          <p className="text-[10px] text-gray-400 italic">No related records</p>
+                                          <p className="text-[10px] text-muted-foreground italic">No related records</p>
                                         )
                                       ) : (
-                                        <div className="bg-gray-50 rounded-lg p-2 space-y-1">
+                                        <div className="bg-muted rounded-lg p-2 space-y-1">
                                           {Object.entries(relData?.data || relData)
                                             .filter(([fk]) => !fk.endsWith('_rel'))
                                             .map(([fk, fv]: [string, any]) => (
                                             <div key={fk} className="flex items-start gap-2">
-                                              <span className="text-[9px] font-mono text-gray-400 shrink-0 mt-0.5">{fk}:</span>
+                                              <span className="text-[9px] font-mono text-muted-foreground shrink-0 mt-0.5">{fk}:</span>
                                               <FileDisplay value={fv} compact />
                                             </div>
                                           ))}
@@ -861,7 +861,7 @@ function SubmissionListPageContent() {
               </div>
 
               {/* Mobile Cards */}
-              <div className="md:hidden divide-y divide-gray-100">
+              <div className="md:hidden divide-y divide-border">
                 {rows.map((row) => (
                   <div key={row._id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
@@ -871,24 +871,24 @@ function SubmissionListPageContent() {
                           checked={selectedIds.has(row._id)}
                           onChange={() => toggleSelectRow(row._id)}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-4 h-4 rounded border-gray-300 text-indigo-600 accent-indigo-600 cursor-pointer shrink-0"
+                          className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer shrink-0"
                         />
-                        <span className="font-mono text-xs text-gray-500 truncate">
+                        <span className="font-mono text-xs text-muted-foreground truncate">
                           {row._id.slice(-8)}
                         </span>
                       </label>
-                      <div className="text-[10px] text-gray-400 shrink-0">
+                      <div className="text-[10px] text-muted-foreground shrink-0">
                         {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "-"}
                       </div>
                     </div>
 
-                    <div className="text-xs text-gray-700 bg-gray-50 rounded-lg p-3 space-y-1">
+                    <div className="text-xs text-foreground bg-muted rounded-lg p-3 space-y-1">
                       {columns.slice(0, 4).map((col) => {
                         const v = getFieldValue(row, col);
                         if (v === undefined || v === null || v === "") return null;
                         return (
                           <div key={col.key} className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <span className="font-mono text-[10px] text-gray-400">{col.label}:</span>
+                            <span className="font-mono text-[10px] text-muted-foreground">{col.label}:</span>
                             <FileDisplay value={v} compact />
                           </div>
                         );
@@ -898,12 +898,12 @@ function SubmissionListPageContent() {
                     {(() => {
                       const mobileRelated = getRelatedSections(row.data);
                       return mobileRelated.length > 0 ? (
-                        <div className="bg-indigo-50/50 rounded-xl p-3 space-y-2">
-                          <p className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">Related</p>
+                        <div className="bg-primary/10 rounded-xl p-3 space-y-2">
+                          <p className="text-[9px] font-black text-primary uppercase tracking-wider">Related</p>
                           {mobileRelated.map(([key, relData]) => {
                             const label = key.replace(/^section_|_rel$/g, '').replace(/_/g, ' ');
                             return (
-                            <div key={key} className="text-[9px] text-gray-600">
+                            <div key={key} className="text-[9px] text-muted-foreground">
                               <span className="font-bold">{label}: </span>
                               {Array.isArray(relData) ? `${relData.length} records` : "1 record"}
                             </div>
@@ -952,7 +952,7 @@ function SubmissionListPageContent() {
             {/* Pagination footer */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-2">
               <div className="flex items-center gap-3 order-2 sm:order-1">
-                <p className="text-[11px] font-bold text-gray-400">
+                <p className="text-[11px] font-bold text-muted-foreground">
                   Showing {rangeStart}–{rangeEnd} of {totalRecords}
                 </p>
                 <select
@@ -961,7 +961,7 @@ function SubmissionListPageContent() {
                     setPageSize(parseInt(e.target.value, 10));
                     setPage(1);
                   }}
-                  className="h-9 px-2 rounded-lg border-2 border-gray-100 bg-white text-[11px] font-bold text-gray-600 outline-none focus:border-indigo-600 cursor-pointer"
+                  className="h-9 px-2 rounded-lg border-2 border-border bg-card text-[11px] font-bold text-muted-foreground outline-none focus:border-primary cursor-pointer"
                 >
                   {[10, 20, 50].map((size) => (
                     <option key={size} value={size}>{size} / page</option>
@@ -973,7 +973,7 @@ function SubmissionListPageContent() {
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                  className="p-2 rounded-lg border-2 border-gray-100 bg-white text-gray-500 disabled:opacity-40 disabled:pointer-events-none hover:border-indigo-300 hover:text-indigo-600 transition-all"
+                  className="p-2 rounded-lg border-2 border-border bg-card text-muted-foreground disabled:opacity-40 disabled:pointer-events-none hover:border-primary/40 hover:text-primary transition-all"
                 >
                   <ChevronLeft size={14} />
                 </button>
@@ -983,8 +983,8 @@ function SubmissionListPageContent() {
                     onClick={() => setPage(p)}
                     className={`min-w-9 h-9 px-2 rounded-lg text-xs font-bold transition-all ${
                       p === page
-                        ? "bg-indigo-600 text-white shadow-[0_4px_15px_rgba(79,70,229,0.35)]"
-                        : "bg-white border-2 border-gray-100 text-gray-500 hover:border-indigo-300 hover:text-indigo-600"
+                        ? "bg-primary text-primary-foreground shadow-[0_4px_15px_rgba(79,70,229,0.35)]"
+                        : "bg-card border-2 border-border text-muted-foreground hover:border-primary/40 hover:text-primary"
                     }`}
                   >
                     {p}
@@ -993,7 +993,7 @@ function SubmissionListPageContent() {
                 <button
                   disabled={page >= totalPages}
                   onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                  className="p-2 rounded-lg border-2 border-gray-100 bg-white text-gray-500 disabled:opacity-40 disabled:pointer-events-none hover:border-indigo-300 hover:text-indigo-600 transition-all rotate-180"
+                  className="p-2 rounded-lg border-2 border-border bg-card text-muted-foreground disabled:opacity-40 disabled:pointer-events-none hover:border-primary/40 hover:text-primary transition-all rotate-180"
                 >
                   <ChevronLeft size={14} />
                 </button>
@@ -1005,7 +1005,7 @@ function SubmissionListPageContent() {
         {/* Floating bulk action bar */}
         {selectedIds.size > 0 && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-md">
-            <div className="bg-gray-900 text-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] px-4 py-3 flex items-center justify-between gap-3">
+            <div className="bg-foreground text-primary-foreground rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] px-4 py-3 flex items-center justify-between gap-3">
               <p className="text-xs font-black whitespace-nowrap">
                 {selectedIds.size} selected
               </p>
@@ -1013,7 +1013,7 @@ function SubmissionListPageContent() {
                 <button
                   onClick={clearSelection}
                   disabled={isBulkDeleting}
-                  className="px-3 py-2 rounded-xl text-[11px] font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
+                  className="px-3 py-2 rounded-xl text-[11px] font-bold text-muted-foreground hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all disabled:opacity-50"
                 >
                   Clear
                 </button>

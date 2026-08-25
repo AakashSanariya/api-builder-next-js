@@ -71,25 +71,25 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 border-b border-gray-50 flex items-center gap-2">
-        <Search size={14} className="text-gray-400 shrink-0" />
+      <div className="p-3 border-b border-border flex items-center gap-2">
+        <Search size={14} className="text-muted-foreground shrink-0" />
         <input
           autoFocus
           placeholder="Search records..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-transparent border-none outline-none text-xs font-bold text-gray-700 placeholder:text-gray-300"
+          className="w-full bg-transparent border-none outline-none text-xs font-bold text-foreground placeholder:text-muted-foreground/50"
         />
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 size={20} className="animate-spin text-indigo-400" />
+            <Loader2 size={20} className="animate-spin text-primary" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-6 text-center">
-            <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+            <p className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest">
               {search ? "No matching records" : "No records available"}
             </p>
           </div>
@@ -105,8 +105,8 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
                   onClick={() => setSelectedId(r._id)}
                   className={`w-full text-left p-3 rounded-xl flex items-center justify-between gap-3 transition-all ${
                     selectedId === r._id
-                      ? "bg-indigo-50 text-indigo-600 ring-2 ring-indigo-200"
-                      : "hover:bg-gray-50 text-gray-600"
+                      ? "bg-primary/10 text-primary ring-2 ring-primary/20"
+                      : "hover:bg-muted text-muted-foreground"
                   }`}
                 >
                   <div className="min-w-0 flex-1">
@@ -117,16 +117,16 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
                         <span className="inline-flex items-center gap-2 flex-wrap">
                           {entries.map(([k, v]) => (
                             <span key={k} className="inline-flex items-center gap-1">
-                              <span className="font-mono text-[9px] text-gray-400">{k}:</span>
+                              <span className="font-mono text-[9px] text-muted-foreground">{k}:</span>
                               <FileDisplay value={v} compact />
                             </span>
                           ))}
                         </span>
                       )}
                     </p>
-                    <p className="text-[9px] font-mono text-gray-400 truncate mt-0.5">{r._id}</p>
+                    <p className="text-[9px] font-mono text-muted-foreground truncate mt-0.5">{r._id}</p>
                   </div>
-                  {selectedId === r._id && <Check size={14} className="text-indigo-600 shrink-0" />}
+                  {selectedId === r._id && <Check size={14} className="text-primary shrink-0" />}
                 </button>
               );
             })}
@@ -134,11 +134,11 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
         )}
       </div>
 
-      <div className="p-3 border-t border-gray-50 flex gap-2">
+      <div className="p-3 border-t border-border flex gap-2">
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 py-2.5 text-[10px] font-black text-gray-400 uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all"
+          className="flex-1 py-2.5 text-[10px] font-black text-muted-foreground uppercase tracking-wider rounded-xl hover:bg-muted transition-all"
         >
           Cancel
         </button>
@@ -148,8 +148,8 @@ export default function RecordPicker({ formSlug, excludeIds, onSelect, onClose }
           disabled={!selectedId}
           className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
             selectedId
-              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100"
-              : "bg-gray-100 text-gray-300 cursor-not-allowed"
+              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+              : "bg-muted text-muted-foreground/50 cursor-not-allowed"
           }`}
         >
           Link Record

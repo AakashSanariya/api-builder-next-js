@@ -35,7 +35,7 @@ const renderItem = (item: any, compact?: boolean) => {
       href={item}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 transition-colors border border-indigo-100 max-w-full ${
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-colors border border-primary/40 max-w-full ${
         compact ? "text-[9px]" : "text-[10px]"
       } font-bold`}
       title={item}
@@ -80,7 +80,7 @@ const FileDisplay: React.FC<FileDisplayProps> = ({ value, compact }) => {
       : value && typeof value === "object"
       ? JSON.stringify(value)
       : String(value ?? "");
-    return <span className="text-gray-700">{text || "-"}</span>;
+    return <span className="text-foreground">{text || "-"}</span>;
   }
 
   return <span className="inline-flex flex-wrap gap-1.5">{rendered}</span>;

@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
@@ -11,12 +12,44 @@ const config: Config = {
         display: ["Outfit", "sans-serif"],
       },
       colors: {
+        background:    "hsl(var(--background))",
+        foreground:    "hsl(var(--foreground))",
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        border:  "hsl(var(--border))",
+        input:   "hsl(var(--input))",
+        ring:    "hsl(var(--ring))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        overlay: "hsl(var(--overlay))",
         brand: {
           50:  "#eef2ff",
           100: "#e0e7ff",
+          200: "#c7d2fe",
+          300: "#a5b4fc",
+          400: "#818cf8",
           500: "#6366f1",
           600: "#4f46e5",
           700: "#4338ca",
+          800: "#3730a3",
+          900: "#312e81",
+          950: "#1e1b4b",
         },
       },
       boxShadow: {
@@ -34,8 +67,6 @@ const config: Config = {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "dot-grid":
-          "radial-gradient(#e5e7eb 1.5px, transparent 1.5px)",
       },
       backgroundSize: {
         "dot-grid": "24px 24px",

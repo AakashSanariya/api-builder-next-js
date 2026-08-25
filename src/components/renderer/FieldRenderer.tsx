@@ -100,8 +100,8 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({
     case "button":
       const isButtonObj = value !== null && typeof value === 'object';
       return (
-        <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 space-y-4">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Configure Button Action</label>
+        <div className="p-6 bg-muted/50 rounded-3xl border border-border space-y-4">
+          <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">Configure Button Action</label>
           <div className="space-y-4">
             <InputField
               label="Button Display Text"
@@ -116,7 +116,7 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({
               <Button type="button" className="w-fit">
                 {isButtonObj ? value.label : (value || field.label || "Action")}
               </Button>
-              <div className="text-[9px] font-bold text-slate-400 uppercase italic">Live Preview</div>
+              <div className="text-[9px] font-bold text-muted-foreground uppercase italic">Live Preview</div>
             </div>
           </div>
         </div>
@@ -125,8 +125,8 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({
     case "link":
       const isLinkObj = value !== null && typeof value === 'object';
       return (
-        <div className="p-6 bg-indigo-50/30 rounded-3xl border border-indigo-50 space-y-4">
-          <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] px-1">Configure Navigation Link</label>
+        <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10 space-y-4">
+          <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] px-1">Configure Navigation Link</label>
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <InputField
@@ -151,7 +151,7 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({
             </div>
 
             <div
-              className="flex items-center justify-between p-4 bg-white rounded-2xl border border-indigo-100/50 cursor-pointer"
+              className="flex items-center justify-between p-4 bg-card rounded-2xl border border-primary/20 cursor-pointer"
               onClick={() => {
                 const currentTarget = isLinkObj ? value.target : field.target;
                 const nextTarget = currentTarget === "_blank" ? "_self" : "_blank";
@@ -159,22 +159,22 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({
                 onChange(newValue);
               }}
             >
-              <span className="text-[10px] font-black text-indigo-900 uppercase">Open in New Tab</span>
-              <div className={`w-10 h-5 rounded-full transition-all relative p-1 ${(isLinkObj ? value.target : field.target) === "_blank" ? 'bg-indigo-600' : 'bg-slate-200'}`}>
-                <div className={`w-3 h-3 rounded-full bg-white transition-all ${(isLinkObj ? value.target : field.target) === "_blank" ? 'translate-x-5' : 'translate-x-0'}`} />
+              <span className="text-[10px] font-black text-primary uppercase">Open in New Tab</span>
+              <div className={`w-10 h-5 rounded-full transition-all relative p-1 ${(isLinkObj ? value.target : field.target) === "_blank" ? 'bg-primary' : 'bg-muted'}`}>
+                <div className={`w-3 h-3 rounded-full bg-card transition-all ${(isLinkObj ? value.target : field.target) === "_blank" ? 'translate-x-5' : 'translate-x-0'}`} />
               </div>
             </div>
 
             <div className="pt-2 flex items-center gap-3">
               <a
                 href="#"
-                className="text-indigo-600 font-bold text-sm underline underline-offset-4 flex items-center gap-1"
+                className="text-primary font-bold text-sm underline underline-offset-4 flex items-center gap-1"
                 onClick={(e) => e.preventDefault()}
               >
                 {isLinkObj ? value.label : field.label || "Link Preview"}
                 <ExternalLink size={12} />
               </a>
-              <span className="text-[9px] font-bold text-indigo-300 uppercase italic">Live UI</span>
+              <span className="text-[9px] font-bold text-primary/50 uppercase italic">Live UI</span>
             </div>
           </div>
         </div>

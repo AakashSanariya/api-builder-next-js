@@ -91,27 +91,27 @@ function RelationshipsPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="animate-spin text-indigo-600 w-10 h-10" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-primary w-10 h-10" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8 lg:p-12">
+    <div className="min-h-screen bg-background p-4 md:p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 md:mb-12 gap-4">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-xl shadow-indigo-100">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20">
                 <GitBranch size={24} />
               </div>
-              <span className="text-xs font-black text-indigo-600 uppercase tracking-[0.3em] font-display">Data Mesh</span>
+              <span className="text-xs font-black text-primary uppercase tracking-[0.3em] font-display">Data Mesh</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-[900] text-gray-900 tracking-tight font-display leading-[0.9]">
+            <h1 className="text-4xl md:text-5xl font-[900] text-foreground tracking-tight font-display leading-[0.9]">
               Table <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-400">Relationships</span>
             </h1>
-            <p className="text-gray-400 mt-3 text-sm font-bold max-w-md">
+            <p className="text-muted-foreground mt-3 text-sm font-bold max-w-md">
               Define how your data tables connect to each other.
             </p>
           </motion.div>
@@ -141,13 +141,13 @@ function RelationshipsPageContent() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="py-20 bg-white rounded-[3rem] border-4 border-dashed border-gray-100 flex flex-col items-center justify-center text-center px-6"
+            className="py-20 bg-card rounded-[3rem] border-4 border-dashed border-border flex flex-col items-center justify-center text-center px-6"
           >
-            <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-xl shadow-indigo-50/50">
+            <div className="w-20 h-20 bg-primary/10 text-primary rounded-[1.5rem] flex items-center justify-center mb-6 shadow-xl shadow-primary/20">
               <Share2 size={40} />
             </div>
-            <h3 className="text-2xl font-black text-gray-900 font-display mb-3">No Relationships Defined</h3>
-            <p className="text-gray-400 max-w-sm mb-8 font-bold text-[10px] uppercase tracking-[0.2em]">
+            <h3 className="text-2xl font-black text-foreground font-display mb-3">No Relationships Defined</h3>
+            <p className="text-muted-foreground max-w-sm mb-8 font-bold text-[10px] uppercase tracking-[0.2em]">
               Create relationships between your data tables to enable cross-table data loading and nested submissions.
             </p>
             <Button variant="primary" size="lg" onClick={() => setShowCreateModal(true)} className="rounded-[2rem]">
@@ -164,17 +164,17 @@ function RelationshipsPageContent() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="bg-white rounded-[2rem] p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all"
+                  className="bg-card rounded-[2rem] p-6 md:p-8 border border-border shadow-sm hover:shadow-md transition-all"
                 >
                   <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
                     <div className="flex-1 flex items-center gap-4 md:gap-6 w-full">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
                           <Box size={18} />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-black text-gray-900 text-sm truncate">{rel.sourceLabel}</p>
-                          <p className="text-[10px] text-gray-400 font-bold truncate">{rel.sourceForm?.slug}</p>
+                          <p className="font-black text-foreground text-sm truncate">{rel.sourceLabel}</p>
+                          <p className="text-[10px] text-muted-foreground font-bold truncate">{rel.sourceForm?.slug}</p>
                         </div>
                       </div>
 
@@ -182,7 +182,7 @@ function RelationshipsPageContent() {
                         <span className={`font-black text-[10px] px-3 py-1 rounded-lg border ${badge.color}`}>
                           {badge.label}
                         </span>
-                        <ArrowRight size={16} className="text-gray-300" />
+                        <ArrowRight size={16} className="text-muted-foreground/50" />
                       </div>
 
                       <div className="flex items-center gap-3 min-w-0">
@@ -190,8 +190,8 @@ function RelationshipsPageContent() {
                           <Box size={18} />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-black text-gray-900 text-sm truncate">{rel.targetLabel}</p>
-                          <p className="text-[10px] text-gray-400 font-bold truncate">{rel.targetForm?.slug}</p>
+                          <p className="font-black text-foreground text-sm truncate">{rel.targetLabel}</p>
+                          <p className="text-[10px] text-muted-foreground font-bold truncate">{rel.targetForm?.slug}</p>
                         </div>
                       </div>
                     </div>
@@ -202,7 +202,7 @@ function RelationshipsPageContent() {
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
                           rel.eagerLoad
                             ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                            : "bg-gray-50 text-gray-400 border border-gray-100"
+                            : "bg-muted text-muted-foreground border border-border"
                         }`}
                         title="Toggle eager loading"
                       >
@@ -212,7 +212,7 @@ function RelationshipsPageContent() {
 
                       <button
                         onClick={() => router.push(`/relationships/${rel.sourceFormId}`)}
-                        className="p-2 bg-gray-50 hover:bg-indigo-50 rounded-xl text-gray-400 hover:text-indigo-600 transition-all border border-gray-100"
+                        className="p-2 bg-muted hover:bg-primary/10 rounded-xl text-muted-foreground hover:text-primary transition-all border border-border"
                         title="View diagram"
                       >
                         <GitBranch size={16} />

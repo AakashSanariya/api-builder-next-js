@@ -142,7 +142,7 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-overlay/40 backdrop-blur-sm z-50"
             onClick={onClose}
           />
           <motion.div
@@ -151,18 +151,18 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed inset-0 flex items-start justify-center p-0 md:p-4 z-50 pt-16 md:pt-20"
           >
-            <div className="flex flex-col w-full h-full md:h-auto md:max-h-[80vh] md:max-w-lg bg-white md:rounded-[2.5rem] shadow-2xl border-0 md:border border-gray-100">
-              <div className="flex items-center justify-between px-5 md:px-8 pt-5 md:pt-8 pb-4 border-b border-gray-50 shrink-0">
+            <div className="flex flex-col w-full h-full md:h-auto md:max-h-[80vh] md:max-w-lg bg-card md:rounded-[2.5rem] shadow-2xl border-0 md:border border-border">
+              <div className="flex items-center justify-between px-5 md:px-8 pt-5 md:pt-8 pb-4 border-b border-border shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                  <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
                     <GitBranch size={16} />
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-gray-900 font-display">Manage Relations</h2>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Record: {recordId.slice(-8)}</p>
+                    <h2 className="text-base font-black text-foreground font-display">Manage Relations</h2>
+                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Record: {recordId.slice(-8)}</p>
                   </div>
                 </div>
-                <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-400 hover:text-gray-600">
+                <button onClick={onClose} className="p-2 hover:bg-muted rounded-xl transition-all text-muted-foreground hover:text-foreground">
                   <X size={18} />
                 </button>
               </div>
@@ -170,11 +170,11 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
               <div className="flex-1 overflow-y-auto p-5 md:px-8 custom-scrollbar">
                 {loading ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 size={24} className="animate-spin text-indigo-400" />
+                    <Loader2 size={24} className="animate-spin text-primary/40" />
                   </div>
                 ) : relationships.length === 0 ? (
                   <div className="py-8 text-center">
-                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No relationships defined</p>
+                    <p className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest">No relationships defined</p>
                   </div>
                 ) : (
                   <div className="space-y-5">
@@ -185,11 +185,11 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
                       const maxReached = rel.type === "one-to-one" && count >= 1;
 
                       return (
-                        <div key={rel._id} className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+                        <div key={rel._id} className="bg-muted/50 rounded-2xl p-4 border border-border">
                           <div className="flex items-center justify-between mb-3">
                             <div>
-                              <h3 className="text-xs font-black text-gray-800">{label}</h3>
-                              <span className="text-[9px] font-mono text-gray-400 uppercase tracking-wider">
+                              <h3 className="text-xs font-black text-foreground">{label}</h3>
+                              <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
                                 {rel.type} &middot; {count} linked
                               </span>
                             </div>
@@ -197,7 +197,7 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
                               <button
                                 type="button"
                                 onClick={() => setPickingRelId(pickingRelId === rel._id ? null : rel._id)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-indigo-100 transition-all"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-primary/20 transition-all"
                               >
                                 <Plus size={12} />
                                 Link
@@ -206,7 +206,7 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
                           </div>
 
                           {pickingRelId === rel._id && (
-                            <div className="mb-3 border border-indigo-100 rounded-xl overflow-hidden bg-white">
+                            <div className="mb-3 border border-primary/20 rounded-xl overflow-hidden bg-card">
                               <RecordPicker
                                 formSlug={getTargetSlug(rel) || ""}
                                 excludeIds={linked.map((l) => l.recordId)}
@@ -219,17 +219,17 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
                           )}
 
                           {count === 0 ? (
-                            <p className="text-[10px] text-gray-400 italic">No linked records</p>
+                            <p className="text-[10px] text-muted-foreground italic">No linked records</p>
                           ) : (
                             <div className="space-y-2">
                               {linked.map((l) => {
                                 const flat = flattenRecord(l.data);
                                 const preview = Object.entries(flat).slice(0, 2).map(([k, v]) => `${k}: ${String(v).slice(0, 25)}`).join(" | ");
                                 return (
-                                  <div key={l.linkId} className="flex items-center justify-between gap-2 bg-white rounded-xl p-3 border border-gray-100">
+                                  <div key={l.linkId} className="flex items-center justify-between gap-2 bg-card rounded-xl p-3 border border-border">
                                     <div className="min-w-0 flex-1">
-                                      <p className="text-[10px] font-bold text-gray-700 truncate">{preview || l.recordId}</p>
-                                      <p className="text-[8px] font-mono text-gray-400 truncate">{l.recordId}</p>
+                                      <p className="text-[10px] font-bold text-foreground truncate">{preview || l.recordId}</p>
+                                      <p className="text-[8px] font-mono text-muted-foreground truncate">{l.recordId}</p>
                                     </div>
                                     <button
                                       type="button"
@@ -262,7 +262,7 @@ export default function ManageRelationsModal({ isOpen, onClose, recordId, slug, 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full py-3 bg-gray-900 text-white text-[10px] font-black uppercase tracking-wider rounded-2xl hover:bg-gray-800 transition-all"
+                  className="w-full py-3 bg-foreground text-background text-[10px] font-black uppercase tracking-wider rounded-2xl hover:bg-foreground/80 transition-all"
                 >
                   Done
                 </button>

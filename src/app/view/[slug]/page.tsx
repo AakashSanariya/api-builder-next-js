@@ -157,24 +157,24 @@ function PublicFormViewContent() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#FDFEFE]">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-          <Loader2 className="text-indigo-600" size={48} />
+          <Loader2 className="text-primary" size={48} />
         </motion.div>
-        <p className="mt-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] animate-pulse">Initializing Secure Engine</p>
+        <p className="mt-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] animate-pulse">Initializing Secure Engine</p>
       </div>
     );
   }
 
   if (!form || !form.published) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-10 text-center">
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white p-12 rounded-[3rem] shadow-2xl border border-gray-100 max-w-md">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-muted p-10 text-center">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card p-12 rounded-[3rem] shadow-2xl border border-border max-w-md">
           <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-[1.5rem] flex items-center justify-center mb-8 mx-auto">
             <AlertCircle size={32} />
           </div>
-          <h1 className="text-2xl font-black text-gray-900 font-display tracking-tight mb-4">{!form ? "404: Not Found" : "Not Accessible"}</h1>
-          <p className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-8 leading-relaxed">
+          <h1 className="text-2xl font-black text-foreground font-display tracking-tight mb-4">{!form ? "404: Not Found" : "Not Accessible"}</h1>
+          <p className="text-muted-foreground font-bold text-xs uppercase tracking-wider mb-8 leading-relaxed">
             {!form
               ? "The form entity requested does not exist on our network."
               : "This schema is currently in draft mode and not accepting public traffic."}
@@ -188,25 +188,25 @@ function PublicFormViewContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-10 md:py-20 px-3 md:px-4 flex justify-center items-start overflow-x-hidden">
-      <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-50/50 rounded-full blur-[120px] pointer-events-none" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-50/50 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-background py-10 md:py-20 px-3 md:px-4 flex justify-center items-start overflow-x-hidden">
+      <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-2xl w-full relative z-10"
       >
-        <div className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.05)] border border-gray-50 overflow-hidden">
-          <header className="px-6 md:px-12 pt-10 md:pt-16 pb-8 md:pb-12 text-center border-b border-gray-50 bg-gray-50/20 backdrop-blur-sm">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm mb-4 md:mb-6">
-              <Zap size={12} className="text-indigo-600" />
-              <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Security Verified</span>
+        <div className="bg-card rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.05)] border border-border overflow-hidden">
+          <header className="px-6 md:px-12 pt-10 md:pt-16 pb-8 md:pb-12 text-center border-b border-border bg-muted backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-card rounded-full border shadow-sm mb-4 md:mb-6">
+              <Zap size={12} className="text-primary" />
+              <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none">Security Verified</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black text-gray-900 font-display tracking-tight leading-none mb-3 md:mb-4 italic">
+            <h1 className="text-2xl md:text-4xl font-black text-foreground font-display tracking-tight leading-none mb-3 md:mb-4 italic">
               {form.name}
             </h1>
-            <p className="text-gray-400 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.2em]">Secure Data Intake Portal</p>
+            <p className="text-muted-foreground font-bold uppercase text-[9px] md:text-[10px] tracking-[0.2em]">Secure Data Intake Portal</p>
           </header>
 
           <div className="p-6 md:p-12">
@@ -220,10 +220,10 @@ function PublicFormViewContent() {
                   <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-[1.5rem] md:rounded-[2rem] mb-8 md:mb-10 shadow-xl shadow-emerald-50">
                     <CheckCircle2 size={40} />
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 font-display tracking-tight mb-3 md:mb-4 leading-none">
+                  <h2 className="text-2xl md:text-3xl font-black text-foreground font-display tracking-tight mb-3 md:mb-4 leading-none">
                     {editRecordId ? "Update Success" : "Transmission Success"}
                   </h2>
-                  <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mb-8 md:mb-12">
+                  <p className="text-muted-foreground font-bold uppercase text-xs tracking-wider mb-8 md:mb-12">
                     {editRecordId
                       ? "Your prefilled data has been updated and stored."
                       : "Your data has been successfully validated and stored."}
@@ -255,10 +255,10 @@ function PublicFormViewContent() {
                       <div key={section.id} className="space-y-6 md:space-y-8">
                         {section.title && (
                           <div className="flex items-center gap-3 md:gap-4 px-2">
-                            <h3 className="text-[10px] md:text-xs font-black text-indigo-600 uppercase tracking-[0.3em] font-display whitespace-nowrap">
+                            <h3 className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.3em] font-display whitespace-nowrap">
                               {section.title}
                             </h3>
-                            <div className="h-px w-full bg-gradient-to-r from-indigo-100 to-transparent" />
+                            <div className="h-px w-full bg-gradient-to-r from-primary/20 to-transparent" />
                           </div>
                         )}
                         <div className="space-y-8 md:space-y-10">
@@ -277,7 +277,7 @@ function PublicFormViewContent() {
                   </div>
 
                   <div className="pt-6 md:pt-10 flex flex-col sm:flex-row gap-3 md:gap-4">
-                    <Button type="button" variant="outline" size="lg" className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem] border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50" onClick={() => router.back()}>
+                    <Button type="button" variant="outline" size="lg" className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem] border-border text-muted-foreground hover:text-muted-foreground hover:bg-muted" onClick={() => router.back()}>
                       Cancel
                     </Button>
                     <Button type="submit" size="lg" className="w-full py-5 md:py-6 text-base md:text-lg rounded-xl md:rounded-[2rem]" isLoading={submitting}>
@@ -290,8 +290,8 @@ function PublicFormViewContent() {
             </AnimatePresence>
           </div>
 
-          <footer className="px-6 md:px-12 py-6 md:py-8 bg-gray-50/50 border-t border-gray-50 text-center">
-            <p className="text-[8px] md:text-[9px] text-gray-400 font-black uppercase tracking-[0.3em]">
+          <footer className="px-6 md:px-12 py-6 md:py-8 bg-muted border-t border-border text-center">
+            <p className="text-[8px] md:text-[9px] text-muted-foreground font-black uppercase tracking-[0.3em]">
               Developed by Aakash Sanariya
             </p>
           </footer>

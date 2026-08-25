@@ -27,9 +27,9 @@ const Button: React.FC<ButtonProps> = ({
   const variants = {
     primary:   "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-[0_8px_30px_rgba(79,70,229,0.3)] hover:shadow-[0_20px_40px_rgba(79,70,229,0.4)] hover:-translate-y-0.5",
     secondary: "bg-gray-900 text-white hover:bg-black shadow-[0_8px_30px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)] hover:-translate-y-0.5",
-    outline:   "bg-white border-2 border-gray-100 text-gray-700 hover:border-indigo-600 hover:text-indigo-600 hover:bg-indigo-50/30",
+    outline:   "bg-card border-2 border-border text-foreground hover:border-primary hover:text-primary hover:bg-primary/10",
     danger:    "bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-[0_8px_30px_rgba(239,68,68,0.3)]",
-    glass:     "bg-white/10 backdrop-blur-md border-2 border-gray-100 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/20",
+    glass:     "bg-white/10 backdrop-blur-md border-2 border-border text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/10",
   };
  
   const sizes = {

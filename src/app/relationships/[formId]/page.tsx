@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import Button from "../../../components/common/Button";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
+import { useThemeColors } from "../../../hooks/useThemeColors";
 
 const TYPE_LABELS: Record<RelationshipType, string> = {
   "one-to-one": "1:1",
@@ -59,24 +60,24 @@ const TYPE_COLORS: Record<RelationshipType, string> = {
 
 function TableNode({ data }: NodeProps<Node<TableNodeData, string>>) {
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg min-w-[180px] hover:shadow-xl transition-shadow">
-      <Handle type="target" position={Position.Left} className="!bg-indigo-500 !w-3 !h-3 !border-2 !border-white" />
-      <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-transparent rounded-t-2xl">
+    <div className="bg-card rounded-2xl border-2 border-border shadow-lg min-w-[180px] hover:shadow-xl transition-shadow">
+      <Handle type="target" position={Position.Left} className="!bg-primary !w-3 !h-3 !border-2 !border-white" />
+      <div className="px-5 py-4 border-b border-border from-primary/10 to-transparent rounded-t-2xl">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0">
+          <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shrink-0">
             <Box size={16} />
           </div>
           <div className="min-w-0">
-            <p className="font-black text-gray-900 text-sm truncate leading-tight">{data.label}</p>
-            <p className="text-[9px] text-gray-400 font-bold truncate">{data.slug}</p>
+            <p className="font-black text-foreground text-sm truncate leading-tight">{data.label}</p>
+            <p className="text-[9px] text-muted-foreground font-bold truncate">{data.slug}</p>
           </div>
         </div>
       </div>
       <div className="px-5 py-3 flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-gray-300" />
-        <span className="text-[10px] font-bold text-gray-500">{data.fieldCount} fields</span>
+        <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+        <span className="text-[10px] font-bold text-muted-foreground">{data.fieldCount} fields</span>
       </div>
-      <Handle type="source" position={Position.Right} className="!bg-indigo-500 !w-3 !h-3 !border-2 !border-white" />
+      <Handle type="source" position={Position.Right} className="!bg-primary !w-3 !h-3 !border-2 !border-white" />
     </div>
   );
 }
@@ -96,6 +97,7 @@ function RelationshipEdge({
   selected,
   ...props
 }: EdgeProps<Edge<EdgeData, string>>) {
+  const colors = useThemeColors();
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
@@ -107,12 +109,14 @@ function RelationshipEdge({
 
   if (!data) return null;
 
+  const typeColor = data.type === "one-to-one" ? colors.primary : TYPE_COLORS[data.type];
+
   return (
     <>
       <path
         id={id}
         style={{
-          stroke: selected ? TYPE_COLORS[data.type] : "#d1d5db",
+          stroke: selected ? typeColor : colors.border,
           strokeWidth: selected ? 3 : 2,
           strokeDasharray: data.eagerLoad ? "none" : "8 4",
         }}
@@ -131,9 +135,9 @@ function RelationshipEdge({
           <span
                   className={`text-[9px] font-black px-2 py-1 rounded-lg border-2 shadow-sm cursor-pointer select-none`}
                     style={{
-                      color: TYPE_COLORS[data.type],
-                      borderColor: TYPE_COLORS[data.type],
-                      backgroundColor: `${TYPE_COLORS[data.type]}10`,
+                      color: typeColor,
+                      borderColor: typeColor,
+                      backgroundColor: `${typeColor}10`,
                     }}
                   >
                     {TYPE_LABELS[data.type]}
@@ -144,7 +148,7 @@ function RelationshipEdge({
               data.onToggle(id);
             }}
             className={`p-1 rounded-md transition-all ${
-              data.eagerLoad ? "text-emerald-600 bg-emerald-50" : "text-gray-400 bg-gray-50"
+              data.eagerLoad ? "text-emerald-600 bg-emerald-50" : "text-muted-foreground bg-muted"
             }`}
             title="Toggle eager load"
           >
@@ -173,6 +177,11 @@ function ErDiagramContent() {
   const { formId } = useParams();
   const router = useRouter();
   const { showPopup } = usePopup();
+  const colors = useThemeColors();
+  const typeColors = useMemo(() => ({
+    ...TYPE_COLORS,
+    "one-to-one": colors.primary,
+  }), [colors.primary]);
   const [form, setForm] = useState<FormModel | null>(null);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [allForms, setAllForms] = useState<FormModel[]>([]);
@@ -321,12 +330,12 @@ function ErDiagramContent() {
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: TYPE_COLORS[rel.type],
+        color: typeColors[rel.type],
         width: 20,
         height: 20,
       },
       style: {
-        stroke: TYPE_COLORS[rel.type],
+        stroke: typeColors[rel.type],
         strokeWidth: rel.eagerLoad ? 3 : 2,
         strokeDasharray: rel.eagerLoad ? "none" : "8 4",
       },
@@ -335,7 +344,7 @@ function ErDiagramContent() {
 
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [form, relationships, allForms, formId, involvedFormIds, handleToggleEagerLoad, handleDeleteRelationship]);
+  }, [form, relationships, allForms, formId, involvedFormIds, handleToggleEagerLoad, handleDeleteRelationship, typeColors]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -347,25 +356,25 @@ function ErDiagramContent() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-primary" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-[#F8FAFC] flex flex-col">
-      <header className="px-6 py-4 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
+    <div className="h-screen bg-background flex flex-col">
+      <header className="px-6 py-4 bg-card border-b border-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={() => router.push("/relationships")}>
             <ArrowLeft size={14} className="mr-2" />
             Back
           </Button>
           <div>
-            <h1 className="text-lg font-black text-gray-900 font-display">
+            <h1 className="text-lg font-black text-foreground font-display">
               {form?.name || "ERD Diagram"}
             </h1>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
               Entity Relationship Diagram
             </p>
           </div>
@@ -392,7 +401,7 @@ function ErDiagramContent() {
           maxZoom={2}
           defaultEdgeOptions={{
             type: "relationshipEdge",
-            markerEnd: { type: MarkerType.ArrowClosed, color: "#d1d5db" },
+            markerEnd: { type: MarkerType.ArrowClosed, color: colors.border },
           }}
         >
           <defs>
@@ -407,17 +416,17 @@ function ErDiagramContent() {
                 markerHeight="6"
                 orient="auto-start-reverse"
               >
-                <path d="M 0 0 L 10 5 L 0 10 z" fill={TYPE_COLORS[type]} />
+                <path d="M 0 0 L 10 5 L 0 10 z" fill={typeColors[type]} />
               </marker>
             ))}
           </defs>
-          <Background color="#e5e7eb" gap={20} />
-          <Controls className="!rounded-2xl !shadow-lg !border !border-gray-100" />
+          <Background color={colors.border} gap={20} />
+          <Controls className="!rounded-2xl !shadow-lg !border !border-border" />
           <MiniMap
-            nodeStrokeColor="#6366f1"
-            nodeColor="#e0e7ff"
+            nodeStrokeColor={colors.primary}
+            nodeColor={colors.primaryRgba(0.2)}
             nodeBorderRadius={12}
-            className="!rounded-2xl !shadow-lg !border !border-gray-100"
+            className="!rounded-2xl !shadow-lg !border !border-border"
           />
         </ReactFlow>
       </div>

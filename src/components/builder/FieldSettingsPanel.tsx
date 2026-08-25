@@ -21,35 +21,35 @@ const FieldSettingsPanel = () => {
 
   if (!selectedField) {
     return (
-      <aside className="w-[360px] bg-white border-l h-full shrink-0 flex flex-col items-center justify-center text-center p-10 gap-8 relative overflow-hidden">
+      <aside className="w-[360px] bg-card border-l h-full shrink-0 flex flex-col items-center justify-center text-center p-10 gap-8 relative overflow-hidden">
         <div className="relative">
-          <div className="w-24 h-24 bg-gray-50 text-gray-200 rounded-[2.5rem] flex items-center justify-center border-4 border-dashed border-gray-100 relative z-10 rotate-6">
+          <div className="w-24 h-24 bg-muted text-muted-foreground/50 rounded-[2.5rem] flex items-center justify-center border-4 border-dashed border-border relative z-10 rotate-6">
             <Sliders size={40} />
           </div>
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-400 z-20">
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary z-20">
             <Code size={14} />
           </div>
         </div>
         <div className="space-y-3">
-          <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.25em] font-display">Configuration</h3>
-          <p className="text-sm text-gray-400 font-bold leading-relaxed max-w-[200px] mx-auto">
-            Select a component on the canvas to customize its <span className="text-indigo-300">API keys</span> and <span className="text-indigo-300">validation logic</span>.
+          <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.25em] font-display">Configuration</h3>
+          <p className="text-sm text-muted-foreground font-bold leading-relaxed max-w-[200px] mx-auto">
+            Select a component on the canvas to customize its <span className="text-primary/50">API keys</span> and <span className="text-primary/50">validation logic</span>.
           </p>
         </div>
 
         {/* Decorative background circle */}
-        <div className="absolute bottom-[-10%] right-[-10%] w-48 h-48 bg-gray-50 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-48 h-48 bg-muted rounded-full blur-3xl opacity-50" />
       </aside>
     );
   }
 
   return (
-    <aside className="w-[360px] bg-white border-l h-full shrink-0 flex flex-col shadow-[-20px_0px_50px_rgba(0,0,0,0.02)] z-30 overflow-hidden relative">
-      <div className="p-8 border-b bg-white/50 backdrop-blur-md flex items-center justify-between sticky top-0 z-10">
+    <aside className="w-[360px] bg-card border-l h-full shrink-0 flex flex-col shadow-[-20px_0px_50px_rgba(0,0,0,0.02)] z-30 overflow-hidden relative">
+      <div className="p-8 border-b bg-card/50 backdrop-blur-md flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h2 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.25em] mb-1 font-display">Field Properties</h2>
+          <h2 className="text-[10px] font-black text-primary uppercase tracking-[0.25em] mb-1 font-display">Field Properties</h2>
           <div className="flex items-center gap-2">
-            <span className="text-xl font-black text-gray-900 font-display tracking-tight leading-none uppercase">
+            <span className="text-xl font-black text-foreground font-display tracking-tight leading-none uppercase">
               {selectedField.type}
             </span>
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_8px_rgb(34,197,94)]" />
@@ -57,7 +57,7 @@ const FieldSettingsPanel = () => {
         </div>
         <button
           onClick={() => setSelectedField(null)}
-          className="p-3 hover:bg-gray-100 rounded-2xl transition-all duration-300 text-gray-400 hover:rotate-90"
+          className="p-3 hover:bg-muted rounded-2xl transition-all duration-300 text-muted-foreground hover:rotate-90"
         >
           <X size={22} />
         </button>
@@ -76,10 +76,10 @@ const FieldSettingsPanel = () => {
             {/* Core Identity */}
             <section className="space-y-8">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
                   <Settings2 size={18} />
                 </div>
-                <h3 className="text-xs font-black text-gray-800 uppercase tracking-[0.1em] font-display">
+                <h3 className="text-xs font-black text-foreground uppercase tracking-[0.1em] font-display">
                   Base Configuration
                 </h3>
               </div>
@@ -130,21 +130,21 @@ const FieldSettingsPanel = () => {
                 <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
                   <ShieldCheck size={18} />
                 </div>
-                <h3 className="text-xs font-black text-gray-800 uppercase tracking-[0.1em] font-display">
+                <h3 className="text-xs font-black text-foreground uppercase tracking-[0.1em] font-display">
                   Data Integrity
                 </h3>
               </div>
 
               <div
-                className="flex items-center justify-between p-5 bg-white border-2 border-gray-50 rounded-3xl group hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-50 transition-all cursor-pointer"
+                className="flex items-center justify-between p-5 bg-card border-2 border-border rounded-3xl group hover:border-primary/40 hover:shadow-xl hover:shadow-primary/20 transition-all cursor-pointer"
                 onClick={() => updateField(selectedField.id, { validations: { ...selectedField.validations, required: !selectedField.validations?.required } })}
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-black text-gray-800 uppercase tracking-tight leading-none">Strictly Required</span>
-                  <span className="text-[9px] font-bold text-gray-400 leading-none">Fails submission if missing</span>
+                  <span className="text-xs font-black text-foreground uppercase tracking-tight leading-none">Strictly Required</span>
+                  <span className="text-[9px] font-bold text-muted-foreground leading-none">Fails submission if missing</span>
                 </div>
-                <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.validations?.required ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                  <div className={`w-4 h-4 rounded-full bg-white transition-all duration-300 shadow-sm ${selectedField.validations?.required ? 'translate-x-6' : 'translate-x-0'}`} />
+                <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.validations?.required ? 'bg-primary' : 'bg-muted'}`}>
+                  <div className={`w-4 h-4 rounded-full bg-card transition-all duration-300 shadow-sm ${selectedField.validations?.required ? 'translate-x-6' : 'translate-x-0'}`} />
                 </div>
               </div>
 
@@ -188,30 +188,30 @@ const FieldSettingsPanel = () => {
 
               {selectedField.type === "file" && (
                 <div
-                  className="flex items-center justify-between p-5 bg-white border-2 border-gray-50 rounded-3xl group hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-50 transition-all cursor-pointer"
+                  className="flex items-center justify-between p-5 bg-card border-2 border-border rounded-3xl group hover:border-primary/40 hover:shadow-xl hover:shadow-primary/20 transition-all cursor-pointer"
                   onClick={() => updateField(selectedField.id, { multiple: !selectedField.multiple })}
                 >
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-black text-gray-800 uppercase tracking-tight leading-none">Parallel Uploads</span>
-                    <span className="text-[9px] font-bold text-gray-400 leading-none">Accept multiple asset entities</span>
+                    <span className="text-xs font-black text-foreground uppercase tracking-tight leading-none">Parallel Uploads</span>
+                    <span className="text-[9px] font-bold text-muted-foreground leading-none">Accept multiple asset entities</span>
                   </div>
-                  <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.multiple ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                    <div className={`w-4 h-4 rounded-full bg-white transition-all duration-300 shadow-sm ${selectedField.multiple ? 'translate-x-6' : 'translate-x-0'}`} />
+                  <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.multiple ? 'bg-primary' : 'bg-muted'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-card transition-all duration-300 shadow-sm ${selectedField.multiple ? 'translate-x-6' : 'translate-x-0'}`} />
                   </div>
                 </div>
               )}
 
               {selectedField.type === "select" && (
                 <div
-                  className="flex items-center justify-between p-5 bg-white border-2 border-gray-50 rounded-3xl group hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-50 transition-all cursor-pointer"
+                  className="flex items-center justify-between p-5 bg-card border-2 border-border rounded-3xl group hover:border-primary/40 hover:shadow-xl hover:shadow-primary/20 transition-all cursor-pointer"
                   onClick={() => updateField(selectedField.id, { multiple: !selectedField.multiple })}
                 >
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-black text-gray-800 uppercase tracking-tight leading-none">Multi-Select</span>
-                    <span className="text-[9px] font-bold text-gray-400 leading-none">Allow selecting multiple options</span>
+                    <span className="text-xs font-black text-foreground uppercase tracking-tight leading-none">Multi-Select</span>
+                    <span className="text-[9px] font-bold text-muted-foreground leading-none">Allow selecting multiple options</span>
                   </div>
-                  <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.multiple ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                    <div className={`w-4 h-4 rounded-full bg-white transition-all duration-300 shadow-sm ${selectedField.multiple ? 'translate-x-6' : 'translate-x-0'}`} />
+                  <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.multiple ? 'bg-primary' : 'bg-muted'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-card transition-all duration-300 shadow-sm ${selectedField.multiple ? 'translate-x-6' : 'translate-x-0'}`} />
                   </div>
                 </div>
               )}
@@ -224,15 +224,15 @@ const FieldSettingsPanel = () => {
                   <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
                     <ListTree size={18} />
                   </div>
-                  <h3 className="text-xs font-black text-gray-800 uppercase tracking-[0.1em] font-display">
+                  <h3 className="text-xs font-black text-foreground uppercase tracking-[0.1em] font-display">
                     Value Mappings
                   </h3>
                 </div>
                 <div className="space-y-4">
-                  <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex items-start gap-4">
-                    <Info size={18} className="text-indigo-500 shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-indigo-700 font-bold leading-relaxed uppercase tracking-tight">
-                      Note: The <span className="font-black text-indigo-900 underline">Unique ID</span> is the value actually stored in the database records.
+                  <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-start gap-4">
+                    <Info size={18} className="text-primary shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-primary font-bold leading-relaxed uppercase tracking-tight">
+                      Note: The <span className="font-black text-primary underline">Unique ID</span> is the value actually stored in the database records.
                     </p>
                   </div>
                 </div>
@@ -244,14 +244,14 @@ const FieldSettingsPanel = () => {
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-6 bg-white border-2 border-gray-50 rounded-[2rem] relative group space-y-6"
+                      className="p-6 bg-card border-2 border-border rounded-[2rem] relative group space-y-6"
                     >
                       <button
                         onClick={() => {
                           const newOptions = selectedField.options?.filter((_, i) => i !== idx);
                           updateField(selectedField.id, { options: newOptions });
                         }}
-                        className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-300 hover:text-red-500 hover:shadow-lg transition-all z-10"
+                        className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground/50 hover:text-red-500 hover:shadow-lg transition-all z-10"
                       >
                         <X size={14} />
                       </button>
@@ -303,7 +303,7 @@ const FieldSettingsPanel = () => {
                       const newOptions = [...(selectedField.options || []), { label: "New Option", value: "new_option", id: `opt_${Date.now()}` }];
                       updateField(selectedField.id, { options: newOptions });
                     }}
-                    className="w-full py-5 bg-white border-3 border-dashed border-gray-100 rounded-[2rem] text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-all font-display"
+                    className="w-full py-5 bg-card border-3 border-dashed border-border rounded-[2rem] text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all font-display"
                   >
                     + Add New Entity Mapping
                   </button>
@@ -318,7 +318,7 @@ const FieldSettingsPanel = () => {
                   <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
                     <Code size={18} />
                   </div>
-                  <h3 className="text-xs font-black text-gray-800 uppercase tracking-[0.1em] font-display">
+                  <h3 className="text-xs font-black text-foreground uppercase tracking-[0.1em] font-display">
                     Interactive Properties
                   </h3>
                 </div>
@@ -341,15 +341,15 @@ const FieldSettingsPanel = () => {
                         className="font-mono"
                       />
                       <div 
-                        className="flex items-center justify-between p-5 bg-white border-2 border-gray-50 rounded-3xl group hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-50 transition-all cursor-pointer"
+                        className="flex items-center justify-between p-5 bg-card border-2 border-border rounded-3xl group hover:border-primary/40 hover:shadow-xl hover:shadow-primary/20 transition-all cursor-pointer"
                         onClick={() => updateField(selectedField.id, { target: selectedField.target === "_blank" ? "_self" : "_blank" })}
                       >
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-black text-gray-800 uppercase tracking-tight leading-none">New Window API</span>
-                          <span className="text-[9px] font-bold text-gray-400 leading-none">Open link in a new tab</span>
+                          <span className="text-xs font-black text-foreground uppercase tracking-tight leading-none">New Window API</span>
+                          <span className="text-[9px] font-bold text-muted-foreground leading-none">Open link in a new tab</span>
                         </div>
-                        <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.target === "_blank" ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                          <div className={`w-4 h-4 rounded-full bg-white transition-all duration-300 shadow-sm ${selectedField.target === "_blank" ? 'translate-x-6' : 'translate-x-0'}`} />
+                        <div className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 ${selectedField.target === "_blank" ? 'bg-primary' : 'bg-muted'}`}>
+                          <div className={`w-4 h-4 rounded-full bg-card transition-all duration-300 shadow-sm ${selectedField.target === "_blank" ? 'translate-x-6' : 'translate-x-0'}`} />
                         </div>
                       </div>
                     </>

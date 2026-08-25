@@ -126,7 +126,7 @@ export default function CreateRelationshipModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-overlay/40 backdrop-blur-sm z-50"
             onClick={handleClose}
           />
           <motion.div
@@ -135,20 +135,20 @@ export default function CreateRelationshipModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed inset-0 flex items-center justify-center p-0 md:p-4 z-50"
           >
-            <div className="flex flex-col w-full h-full md:h-auto md:max-h-[85vh] md:max-w-[520px] bg-white md:rounded-[2.5rem] shadow-2xl border-0 md:border border-gray-100">
-              <div className="flex items-center justify-between px-6 md:px-8 pt-6 md:pt-8 pb-4 border-b border-gray-50 shrink-0">
+            <div className="flex flex-col w-full h-full md:h-auto md:max-h-[85vh] md:max-w-[520px] bg-card md:rounded-[2.5rem] shadow-2xl border-0 md:border border-border">
+              <div className="flex items-center justify-between px-6 md:px-8 pt-6 md:pt-8 pb-4 border-b border-border shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                  <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
                     <GitBranch size={18} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-gray-900 font-display">New Relationship</h2>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Link two data tables</p>
+                    <h2 className="text-lg font-black text-foreground font-display">New Relationship</h2>
+                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Link two data tables</p>
                   </div>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-400 hover:text-gray-600"
+                  className="p-2 hover:bg-muted rounded-xl transition-all text-muted-foreground hover:text-foreground"
                 >
                   <X size={18} />
                 </button>
@@ -166,7 +166,7 @@ export default function CreateRelationshipModal({
                 />
 
                 <div className="flex justify-center -my-1">
-                  <ArrowRight size={20} className="text-indigo-300" />
+                  <ArrowRight size={20} className="text-primary/40" />
                 </div>
 
                 <Select
@@ -198,7 +198,7 @@ export default function CreateRelationshipModal({
                 )}
               </div>
 
-              <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2 flex gap-3 shrink-0 border-t border-gray-50 md:border-t-0">
+              <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2 flex gap-3 shrink-0 border-t border-border md:border-t-0">
                 <Button
                   variant="outline"
                   size="lg"

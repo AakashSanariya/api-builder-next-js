@@ -107,12 +107,12 @@ function BuilderPageContent() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white">
+      <div className="flex h-screen items-center justify-center bg-card">
         <motion.div 
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
         >
-            <Loader2 className="text-indigo-600 w-9 h-9 md:w-12 md:h-12" />
+            <Loader2 className="text-primary w-9 h-9 md:w-12 md:h-12" />
         </motion.div>
       </div>
     );
@@ -125,32 +125,32 @@ function BuilderPageContent() {
   const isInvalid = hasDuplicates || hasEmptyKeys;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#F8FAFC]">
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
       {/* Premium Glass Header */}
-      <header className="h-16 md:h-20 bg-white/80 backdrop-blur-xl border-b px-4 md:px-8 flex items-center justify-between z-40 shrink-0 sticky top-0 gap-2 md:gap-0">
+      <header className="h-16 md:h-20 bg-card/80 backdrop-blur-xl border-b px-4 md:px-8 flex items-center justify-between z-40 shrink-0 sticky top-0 gap-2 md:gap-0">
         <div className="flex items-center gap-2 md:gap-6 min-w-0">
           <motion.button 
             whileHover={{ scale: 1.1, x: -2 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => router.push("/forms")}
-            className="p-2 md:p-3 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl md:rounded-2xl transition-all shrink-0"
+            className="p-2 md:p-3 bg-muted text-muted-foreground hover:text-foreground rounded-xl md:rounded-2xl transition-all shrink-0"
           >
             <ArrowLeft size={16} className="" />
           </motion.button>
            
-          <div className="h-6 md:h-8 w-px bg-gray-100 shrink-0" />
+          <div className="h-6 md:h-8 w-px bg-muted shrink-0" />
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 md:gap-2">
-                <h1 className="text-base md:text-xl font-black text-gray-900 font-display tracking-tight leading-none truncate">{formName}</h1>
+                <h1 className="text-base md:text-xl font-black text-foreground font-display tracking-tight leading-none truncate">{formName}</h1>
 
                 <div className={`px-1.5 py-0.5 md:px-2 rounded text-[7px] md:text-[8px] font-black uppercase tracking-widest border shrink-0 ${isPublished ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                     {isPublished ? 'Live' : 'Draft'}
                 </div>
             </div>
             <div className="hidden md:flex items-center gap-2 mt-1.5">
-                <Globe size={10} className="text-gray-300" />
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter truncate">Schema ID: {formId}</p>
+                <Globe size={10} className="text-muted-foreground/50" />
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter truncate">Schema ID: {formId}</p>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ function BuilderPageContent() {
           {/* Mobile Menu Buttons */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 md:hidden bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl transition-all"
+            className="p-2 md:hidden bg-muted text-muted-foreground hover:text-foreground rounded-xl transition-all"
             title="Toggle Components"
           >
             <Layout size={16} />
@@ -167,7 +167,7 @@ function BuilderPageContent() {
           
           <button
             onClick={() => setSettingsOpen(!settingsOpen)}
-            className={`p-2 md:hidden rounded-xl transition-all ${selectedField ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400 hover:text-gray-900'}`}
+            className={`p-2 md:hidden rounded-xl transition-all ${selectedField ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
             title="Toggle Settings"
           >
             <Settings2 size={16} />
@@ -177,7 +177,7 @@ function BuilderPageContent() {
             variant="glass" 
             size="sm" 
             onClick={() => router.push(`/view/${formSlug}`)}
-            className="hidden md:flex text-gray-400 border-gray-100"
+            className="hidden md:flex text-muted-foreground border-border"
           >
             <Globe size={18} className="mr-2 opacity-50" />
             Live Preview
@@ -188,7 +188,7 @@ function BuilderPageContent() {
             onClick={() => handleSave(false)}
             isLoading={saving}
             disabled={isInvalid}
-            className={`hidden md:flex border-gray-100 bg-white ${isInvalid ? 'opacity-50 grayscale' : ''}`}
+            className={`hidden md:flex border-border bg-card ${isInvalid ? 'opacity-50 grayscale' : ''}`}
             title={isInvalid ? (hasEmptyKeys ? "One or more API Keys are empty" : "Duplicate API Keys detected") : "Sync changes"}
           >
             <Save size={18} className="mr-2 opacity-50" />
@@ -220,7 +220,7 @@ function BuilderPageContent() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setSidebarOpen(false)}
-                className="absolute inset-0 bg-black/50 z-50 md:hidden"
+                className="absolute inset-0 bg-overlay/50 z-50 md:hidden"
               />
               <motion.aside
                 initial={{ x: -320 }}
@@ -251,7 +251,7 @@ function BuilderPageContent() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setSettingsOpen(false)}
-                className="absolute inset-0 bg-black/50 z-50 md:hidden"
+                className="absolute inset-0 bg-overlay/50 z-50 md:hidden"
               />
               <motion.aside
                 initial={{ x: 360 }}

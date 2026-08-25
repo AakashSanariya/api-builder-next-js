@@ -58,9 +58,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
   return (
     <div className="flex flex-col gap-2 md:gap-3 w-full">
       <div className="flex justify-between items-end px-1">
-        <label className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-[0.1em] font-display">
+        <label className="text-[10px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.1em] font-display">
           {label}
-          {required && <span className="text-indigo-500 ml-1 font-bold text-base md:text-lg leading-none">*</span>}
+          {required && <span className="text-primary ml-1 font-bold text-base md:text-lg leading-none">*</span>}
         </label>
       </div>
  
@@ -78,30 +78,30 @@ const FileUpload: React.FC<FileUploadProps> = ({
         }}
         onClick={() => fileInputRef.current?.click()}
         className={`w-full min-h-36 md:h-44 rounded-xl md:rounded-[2.5rem] border-2 md:border-3 border-dashed flex flex-col items-center justify-center gap-3 md:gap-4 cursor-pointer transition-all duration-300 relative overflow-hidden touch-manipulation
-          ${isDragging || value.length > 0 ? "bg-white" : "bg-gray-50/50"}
+          ${isDragging || value.length > 0 ? "bg-card" : "bg-muted/30"}
           ${error 
             ? "border-red-100 ring-4 ring-red-50" 
-            : "border-gray-100 hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-100/50 group"
+            : "border-border hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/20 group"
           }
-           ${isDragging ? "border-indigo-500 bg-indigo-50/30 scale-[1.01]" : ""}`}
+           ${isDragging ? "border-primary bg-primary/10 scale-[1.01]" : ""}`}
       >
         <div className="relative">
             <motion.div 
                 animate={{ y: isDragging ? -5 : 0 }}
-                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white flex items-center justify-center shadow-xl text-gray-400 group-hover:text-indigo-600 transition-colors z-10 relative border border-gray-50"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-card flex items-center justify-center shadow-xl text-muted-foreground group-hover:text-primary transition-colors z-10 relative border border-border"
             >
                 <Upload size={20} className="" />
             </motion.div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg z-20">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center text-white shadow-lg z-20">
                 <Plus size={12} className="" />
             </div>
         </div>
  
         <div className="text-center px-4">
-            <span className="block text-xs md:text-sm font-black text-gray-800 uppercase tracking-widest font-display">
+            <span className="block text-xs md:text-sm font-black text-foreground uppercase tracking-widest font-display">
                 {multiple ? "Drop files here" : "Drop file here"}
             </span>
-            <span className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase mt-1 block">
+            <span className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase mt-1 block">
                 or click to browse
             </span>
         </div>
@@ -133,7 +133,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                   layout
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center justify-between p-3 md:p-4 bg-white border border-gray-50 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                  className="flex items-center justify-between p-3 md:p-4 bg-card border border-border rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all group"
                 >
                   <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
                     <div className={`p-1.5 md:p-2 rounded-lg md:rounded-xl shrink-0 ${isImage ? "bg-amber-50 text-amber-500" : "bg-blue-50 text-blue-500"}`}>
@@ -151,17 +151,17 @@ const FileUpload: React.FC<FileUploadProps> = ({
                           href={String(entry)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs font-black text-gray-700 truncate font-display hover:text-indigo-600 flex items-center gap-1"
+                          className="text-xs font-black text-foreground truncate font-display hover:text-primary flex items-center gap-1"
                         >
                           {name}
                           <ExternalLink size={10} className="shrink-0 opacity-50" />
                         </a>
                       ) : (
-                        <span className="text-xs font-black text-gray-700 truncate font-display">
+                        <span className="text-xs font-black text-foreground truncate font-display">
                           {name}
                         </span>
                       )}
-                      <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+                      <span className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">
                         {isFile ? `${(entry.size / 1024 / 1024).toFixed(2)} MB` : "Uploaded"}
                       </span>
                     </div>
@@ -169,7 +169,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
-                    className="p-1.5 md:p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg md:rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                    className="p-1.5 md:p-2 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg md:rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
                   >
                     <X size={14} className="" />
                   </button>
@@ -180,7 +180,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         )}
       </AnimatePresence>
       
-      {error && <span className="text-[10px] md:text-[11px] font-bold text-red-500 px-2 mt-1">{error}</span>}
+      {error && <span className="text-[10px] md:text-[11px] font-bold text-destructive px-2 mt-1">{error}</span>}
     </div>
   );
 };

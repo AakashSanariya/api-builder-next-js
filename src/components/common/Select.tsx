@@ -73,23 +73,23 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
       className={`flex flex-col gap-1.5 md:gap-2 w-full relative ${className}`}
     >
       <div className="flex justify-between items-end px-1">
-        <label className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-[0.1em] font-display">
+        <label className="text-[10px] md:text-xs font-black text-muted-foreground uppercase tracking-[0.1em] font-display">
           {label}
-          {props.required && <span className="text-indigo-500 ml-1 font-bold text-base md:text-lg leading-none">*</span>}
+          {props.required && <span className="text-primary ml-1 font-bold text-base md:text-lg leading-none">*</span>}
         </label>
-        {props.multiple && <span className="text-[8px] md:text-[9px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Multi</span>}
+        {props.multiple && <span className="text-[8px] md:text-[9px] font-black text-primary/70 uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">Multi</span>}
       </div>
 
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full min-h-12 md:min-h-14 px-4 md:px-5 py-3 rounded-xl md:rounded-[1.25rem] border-2 bg-white transition-all duration-300 flex flex-wrap gap-2 items-center cursor-pointer touch-manipulation
+        className={`w-full min-h-12 md:min-h-14 px-4 md:px-5 py-3 rounded-xl md:rounded-[1.25rem] border-2 bg-card transition-all duration-300 flex flex-wrap gap-2 items-center cursor-pointer touch-manipulation
           ${error 
             ? "border-red-100 shadow-[0_0_20px_rgb(239,68,68,0.05)]" 
-            : isOpen ? "border-indigo-600 shadow-[0_10px_30px_rgb(79,70,229,0.08)]" : "border-gray-50 hover:border-gray-200 bg-gray-50/30"
+            : isOpen ? "border-primary shadow-[0_10px_30px_rgb(79,70,229,0.08)]" : "border-border hover:border-border bg-muted/30"
           }
         `}
       >
-        {!props.multiple && !value && <span className="text-gray-300 font-medium text-xs md:text-sm">Select {label.toLowerCase()}...</span>}
+        {!props.multiple && !value && <span className="text-muted-foreground/50 font-medium text-xs md:text-sm">Select {label.toLowerCase()}...</span>}
         
         {props.multiple && Array.isArray(value) && value.length > 0 ? (
           <div className="flex flex-wrap gap-1.5 md:gap-2">
@@ -103,7 +103,7 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
                   key={i} 
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="bg-indigo-600 text-white text-[9px] md:text-[10px] font-black uppercase tracking-tight py-1 pl-2 md:py-1.5 md:pl-3 pr-1.5 md:pr-2 rounded-lg md:rounded-xl flex items-center gap-1 md:gap-2 shadow-lg shadow-indigo-200"
+                  className="bg-primary text-primary-foreground text-[9px] md:text-[10px] font-black uppercase tracking-tight py-1 pl-2 md:py-1.5 md:pl-3 pr-1.5 md:pr-2 rounded-lg md:rounded-xl flex items-center gap-1 md:gap-2 shadow-lg shadow-primary/20"
                 >
                   <span className="max-w-[100px] md:max-w-none truncate">{opt?.label || String(v)}</span>
                   <button 
@@ -119,7 +119,7 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
           </div>
         ) : (
           !props.multiple && value && (
-            <span className="text-gray-700 font-bold text-sm md:text-base">
+            <span className="text-foreground font-bold text-sm md:text-base">
               {options.find(o => {
                  const val = o.id || (typeof o.value === 'object' ? JSON.stringify(o.value) : o.value);
                  return String(val) === (typeof value === 'object' ? JSON.stringify(value) : String(value));
@@ -128,7 +128,7 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
           )
         )}
 
-        <div className="ml-auto text-gray-400 group-hover:text-indigo-500 transition-colors">
+        <div className="ml-auto text-muted-foreground group-hover:text-primary transition-colors">
           <ChevronDown size={16} className={`md:w-5 md:h-5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </div>
@@ -139,16 +139,16 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-full left-0 right-0 mt-2 md:mt-3 bg-white border border-gray-100 rounded-xl md:rounded-[2rem] shadow-lg z-50 overflow-hidden backdrop-blur-xl"
+            className="absolute top-full left-0 right-0 mt-2 md:mt-3 bg-card border border-border rounded-xl md:rounded-[2rem] shadow-lg z-50 overflow-hidden backdrop-blur-xl"
           >
-            <div className="p-3 md:p-4 border-b border-gray-50 flex items-center gap-2 md:gap-3 bg-gray-50/30">
-               <Search size={14} className="text-gray-400" />
+            <div className="p-3 md:p-4 border-b border-border flex items-center gap-2 md:gap-3 bg-muted/30">
+               <Search size={14} className="text-muted-foreground" />
                <input 
                   autoFocus
                   placeholder="Filter..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-full placeholder:text-gray-300"
+                  className="bg-transparent border-none outline-none text-xs font-bold text-foreground w-full placeholder:text-muted-foreground"
                   onClick={(e) => e.stopPropagation()}
                />
             </div>
@@ -162,20 +162,20 @@ const Select: React.FC<SelectProps> = ({ label, options, error, className = "", 
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleSelect(opt); }}
                       className={`w-full text-left p-3 md:p-4 rounded-xl md:rounded-2xl flex items-center justify-between transition-all duration-200 mb-0.5 md:mb-1 last:mb-0 touch-manipulation
-                        ${active ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-600'}
+                        ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}
                       `}
                     >
                       <div className="flex flex-col min-w-0">
                         <span className="text-sm font-black font-display uppercase tracking-tight truncate">{opt.label}</span>
                         {opt.id && <span className="text-[8px] md:text-[9px] font-mono font-bold opacity-50 truncate">ID: {opt.id}</span>}
                       </div>
-                      {active && <Check size={16} className="text-indigo-600 shrink-0" />}
+                      {active && <Check size={16} className="text-primary shrink-0" />}
                     </button>
                   );
                 })
               ) : (
                 <div className="p-6 md:p-8 text-center">
-                   <p className="text-[9px] md:text-[10px] font-black text-gray-300 uppercase tracking-widest">No matching entities</p>
+                   <p className="text-[9px] md:text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest">No matching entities</p>
                 </div>
               )}
             </div>
