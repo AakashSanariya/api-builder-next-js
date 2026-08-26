@@ -8,7 +8,8 @@ import { useBuilderStore } from "../../../store/useBuilderStore";
 import BuilderSidebar from "../../../components/builder/BuilderSidebar";
 import BuilderCanvas from "../../../components/builder/BuilderCanvas";
 import FieldSettingsPanel from "../../../components/builder/FieldSettingsPanel";
-import { Loader2, ArrowLeft, Save, Rocket, Layout, Globe, PanelLeftClose, PanelLeftOpen, Settings2 } from "lucide-react";
+import FormPreview from "../../../components/builder/FormPreview";
+import { Loader2, ArrowLeft, Save, Rocket, Layout, Globe, PanelLeftClose, PanelLeftOpen, Settings2, Eye, EyeOff } from "lucide-react";
 import Button from "../../../components/common/Button";
 import { usePopup } from "../../../contexts/PopupContext";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
@@ -32,7 +33,9 @@ function BuilderPageContent() {
     formSlug, 
     isPublished,
     reset,
-    selectedField
+    selectedField,
+    previewMode,
+    togglePreview
   } = useBuilderStore();
 
 
@@ -157,20 +160,33 @@ function BuilderPageContent() {
 
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
           {/* Mobile Menu Buttons */}
+          {!previewMode && (
+            <>
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 md:hidden bg-muted text-muted-foreground hover:text-foreground rounded-xl transition-all"
+                title="Toggle Components"
+              >
+                <Layout size={16} />
+              </button>
+              
+              <button
+                onClick={() => setSettingsOpen(!settingsOpen)}
+                className={`p-2 md:hidden rounded-xl transition-all ${selectedField ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                title="Toggle Settings"
+              >
+                <Settings2 size={16} />
+              </button>
+            </>
+          )}
+
+          {/* Mobile Preview Toggle */}
           <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 md:hidden bg-muted text-muted-foreground hover:text-foreground rounded-xl transition-all"
-            title="Toggle Components"
+            onClick={togglePreview}
+            className={`p-2 md:hidden rounded-xl transition-all ${previewMode ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+            title={previewMode ? "Exit Preview" : "Preview Form"}
           >
-            <Layout size={16} />
-          </button>
-          
-          <button
-            onClick={() => setSettingsOpen(!settingsOpen)}
-            className={`p-2 md:hidden rounded-xl transition-all ${selectedField ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
-            title="Toggle Settings"
-          >
-            <Settings2 size={16} />
+            {previewMode ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
 
           <Button 
@@ -181,6 +197,15 @@ function BuilderPageContent() {
           >
             <Globe size={18} className="mr-2 opacity-50" />
             Live Preview
+          </Button>
+          <Button 
+            variant={previewMode ? "primary" : "outline"}
+            size="sm" 
+            onClick={togglePreview}
+            className="hidden md:flex border-border bg-card"
+          >
+            {previewMode ? <EyeOff size={18} className="mr-2" /> : <Eye size={18} className="mr-2 opacity-50" />}
+            {previewMode ? 'Exit Preview' : 'Preview'}
           </Button>
           <Button 
             variant="outline" 
@@ -213,7 +238,7 @@ function BuilderPageContent() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Mobile Sidebar Overlay */}
         <AnimatePresence>
-          {sidebarOpen && (
+          {sidebarOpen && !previewMode && (
             <>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -236,15 +261,17 @@ function BuilderPageContent() {
         </AnimatePresence>
 
         {/* Desktop Sidebar */}
-        <div className="hidden md:block">
-          <BuilderSidebar />
-        </div>
+        {!previewMode && (
+          <div className="hidden md:block">
+            <BuilderSidebar />
+          </div>
+        )}
 
-        <BuilderCanvas />
+        {previewMode ? <FormPreview /> : <BuilderCanvas />}
         
         {/* Mobile Settings Overlay */}
         <AnimatePresence>
-          {settingsOpen && selectedField && (
+          {settingsOpen && selectedField && !previewMode && (
             <>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -267,9 +294,11 @@ function BuilderPageContent() {
         </AnimatePresence>
 
         {/* Desktop Settings Panel */}
-        <div className="hidden md:block">
-          <FieldSettingsPanel />
-        </div>
+        {!previewMode && (
+          <div className="hidden md:block">
+            <FieldSettingsPanel />
+          </div>
+        )}
       </div>
 
       {/* Decorative backdrop glow */}

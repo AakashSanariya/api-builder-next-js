@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { SectionSchema, FieldSchema, FieldType } from "../types/field.types";
 
+export type PreviewDevice = "desktop" | "tablet" | "phone";
+
 interface BuilderState {
   sections: SectionSchema[];
   selectedField: FieldSchema | null;
@@ -8,6 +10,8 @@ interface BuilderState {
   formName: string;
   formSlug: string;
   isPublished: boolean;
+  previewMode: boolean;
+  previewDevice: PreviewDevice;
 
   // Header Actions
   setSections: (sections: SectionSchema[]) => void;
@@ -17,6 +21,8 @@ interface BuilderState {
   reset: () => void;
   setSelectedField: (field: FieldSchema | null) => void;
   setActiveSection: (id: string | null) => void;
+  togglePreview: () => void;
+  setPreviewDevice: (device: PreviewDevice) => void;
 
   // Section Actions
   addSection: (title?: string) => void;
@@ -38,8 +44,12 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   formName: "",
   formSlug: "",
   isPublished: false,
+  previewMode: false,
+  previewDevice: "desktop",
 
   setSections: (sections) => set({ sections }),
+  togglePreview: () => set((state) => ({ previewMode: !state.previewMode })),
+  setPreviewDevice: (device) => set({ previewDevice: device }),
 
   addSection: (title) => {
     set((state) => ({
@@ -170,5 +180,5 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   setFormName: (name) => set({ formName: name }),
   setFormSlug: (slug) => set({ formSlug: slug }),
   setIsPublished: (published) => set({ isPublished: published }),
-  reset: () => set({ sections: [], selectedField: null, activeSectionId: null, formName: "", formSlug: "", isPublished: false }),
+  reset: () => set({ sections: [], selectedField: null, activeSectionId: null, formName: "", formSlug: "", isPublished: false, previewMode: false, previewDevice: "desktop" }),
 }));
